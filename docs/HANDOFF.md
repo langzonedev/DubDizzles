@@ -13,7 +13,7 @@ Play: https://langzonedev.github.io/DubDizzles/
 - Faster aimed walking/strafing with a smaller precision penalty; smooth display interpolation while player look remains immediate.
 - Smoother bot turning, acceleration, target selection, navigation and continuous distance-driven leg animation.
 
-Independent findings, test totals and browser evidence: [FEEL_REVIEW.md](FEEL_REVIEW.md). Publication evidence: [RELEASE_0.4.0.md](RELEASE_0.4.0.md). Previous release records remain in RELEASE_0.3.0.md and GAUNTLET_REVIEW.md.
+Independent findings, test totals and browser evidence: [FEEL_REVIEW.md](FEEL_REVIEW.md). Published candidate f98e814 and verify/deploy run 42025089413 passed; root verified the served asset hashes and actual captured-mouse/offline gameplay on the public URL. Full publication evidence: [RELEASE_0.4.0.md](RELEASE_0.4.0.md). Previous release records remain in RELEASE_0.3.0.md and GAUNTLET_REVIEW.md.
 
 ## Human acceptance route
 
