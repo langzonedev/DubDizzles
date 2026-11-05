@@ -17,3 +17,13 @@ Protected: original public assets only, browser-only/offline, relative /DubDizzl
 Acceptance: platform-independent passing mechanics/controller/worker tests; JS syntax; browser deploy/move/aim/fire/reload/pause/restart; portrait/landscape layout and emulated multi-pointer checks; offline reload/cache isolation/update; bounded render budget and measured desktop frame timing; no browser runtime errors. Physical phone, thermal and subjective play-feel acceptance remain Greg's next handoff and cannot be replaced by emulation.
 
 Initial audit: Windows controller tests failed because their import-stripper assumed LF; fire cadence depended on frame rate; render dimensions could distort wide/portrait viewports. Cause owners assigned above. QA loops return failures to the appropriate author and rerun affected checks before closure. Final evidence and remaining conditions are recorded in GAUNTLET_REVIEW.md and HANDOFF.md.
+
+
+## Gate closure
+
+- G0–C2: accepted within the existing solo static-game contract and explicit main/Pages authority.
+- G8: gameplay, presentation and controller outputs converged; per-file ownership conflicts were avoided.
+- G9: independent QA explicitly approved the final readability assets for human acceptance. 53 tests, syntax and Chrome browser gauntlet passed; root independently verified Edge.
+- G10–G11: release `646c400`, verify/deploy run `41997054280` succeeded; live asset hashes and Edge/offline smoke passed. See RELEASE_0.3.0.md.
+- G12: product lessons captured in HANDOFF/GAUNTLET_REVIEW/architecture; no change in repository identity, visibility, lifecycle or successor relationship required a portfolio edit. Existing Core modifications were preserved.
+- Next recipient: Greg, physical phone/desktop play-feel acceptance. This is a human handoff, not an invented physical-device or enjoyment result.

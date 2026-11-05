@@ -21,7 +21,7 @@ Existing wallet/settings identities, per-life costs, free fallback and original 
 
 Run `npm run verify` for syntax and mechanics/controller/worker checks. Run `node tests/browser-smoke.cjs` using the isolated Playwright setup in README for desktop play, keyboard pause, touch viewports, screenshots and offline reload. Browser and CI evidence belongs to the release commit, not to this document's claims alone. See the independent review for exact results and limits.
 
-The Pages workflow must pass both automated and real-browser checks before packaging only application assets. Its browser screenshots are retained as the `browser-evidence` artifact. Publication commit, Actions run and post-deployment observations will be recorded in [RELEASE_0.3.0.md](RELEASE_0.3.0.md) after deployment.
+The Pages workflow must pass both automated and real-browser checks before packaging only application assets. Its browser screenshots are retained as the `browser-evidence` artifact. Application commit `646c400`, Actions run `41997054280` and post-deployment asset/browser/offline checks all passed. Full publication evidence is recorded in [RELEASE_0.3.0.md](RELEASE_0.3.0.md).
 
 ## Next human session — Greg
 
