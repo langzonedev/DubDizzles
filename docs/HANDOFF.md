@@ -24,7 +24,7 @@ The original palette, deployment composition, solo match loop, wallet/save ident
 
 ## Evidence and publication
 
-Independent source/controller/browser results and remaining hardware conditions are in [LAPTOP_REVIEW.md](LAPTOP_REVIEW.md). Exact release commit, Actions run and live checks are recorded in [RELEASE_0.5.0.md](RELEASE_0.5.0.md) after publication. Historical 0.4.0 evidence remains in FEEL_REVIEW.md and RELEASE_0.4.0.md.
+Independent source/controller/browser results and remaining hardware conditions are in [LAPTOP_REVIEW.md](LAPTOP_REVIEW.md). Published candidate d82c177 and Actions run 42031505430 passed both browser gates and deployment; root verified all ten served asset hashes and live laptop/Mouse-profile/offline checks. Full evidence is in [RELEASE_0.5.0.md](RELEASE_0.5.0.md). Historical 0.4.0 evidence remains in FEEL_REVIEW.md and RELEASE_0.4.0.md.
 
 Run npm run verify. The browser gauntlet runs regular Chromium, preserves the strict no-camera-warp check and uses bounded simulation-state waits. Physical touchpad palm rejection, phone comfort, heat and enjoyment require actual device/human evidence; synthetic events are not those checks.
 

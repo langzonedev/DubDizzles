@@ -49,3 +49,8 @@ Root integration recheck: the full existing desktop/touch/scope/chord/offline/ic
 After closing the manual test tab and both verification browsers, root ran one six-second local signed Edge 156.0.4314.58 sample per quality at 1440x900, holding W/D, Q aiming and ArrowRight turning. Performance: 359 frames, median16.7ms, p9516.8ms, max43.0ms, buffer480x300. Auto:361 frames, median16.7ms, p9516.8ms, max17.1ms, buffer759x474, scale1. High:361 frames, median16.7ms, p9516.8ms, max17.0ms, buffer960x600. Each context was fresh and closed afterward; the measurement script was v05-performance.cjs in temporary tools, not shipped code.
 
 These are observed workstation/browser scheduling samples, not a guaranteed game FPS, controlled before/after comparison, phone benchmark or sustained thermal test. Auto did not need to downscale during these short samples; its pressure/recovery behavior is covered separately by renderer tests. The Performance startup outlier is retained rather than hidden.
+
+
+## Publication closure
+
+Root reports published candidate d82c177, Actions42031505430 SUCCESS (92tests plus both real-browser gates and deployment), ten served assets matching Git-blob SHA-256, and a successful fresh public Edge156.0.4314.58 laptop/Mouse/input-check/offline walkthrough with zero page errors. This closes the software/deployment gates at the stated scope. Independent focused verifier laptop_verification supplied the Chrome/controller PASS; root's integration/publication evidence is separately attributed. Actual touchpad suppression and human feel remain open exactly as described above.
