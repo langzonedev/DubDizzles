@@ -112,8 +112,9 @@ async function feelGauntlet(browser,url,output,errors){
    await p.screenshot({path:path.join(output,name+'-menu.png'),fullPage:true});await p.locator('#deploy').tap();await p.locator('#hud').waitFor({state:'visible',timeout:10000});
    for(const id of ['tFire','tAim','tReload','tBuild','tUse','tGrenade','pause']){const b=await p.locator('#'+id).boundingBox();assert.ok(b&&b.x>=0&&b.y>=0&&b.x+b.width<=width+1&&b.y+b.height<=height+1,`${name} ${id} is within viewport`);assert.ok(b.width>=44&&b.height>=44,`${name} ${id} meets touch target size`);}
    await p.locator('#tFire').tap();await p.waitForFunction(()=>Number(document.querySelector('#ammo').textContent)<24,null,{timeout:10000});assert.ok(Number(await p.locator('#ammo').textContent())<24,'touch tap fires');
+   await p.locator('#tAim').tap();await waitForADS(p);assert.equal((await p.evaluate(()=>__feelInspect())).aiming,true);
+   await p.screenshot({path:path.join(output,name+'-aim.png')});
    if(name==='landscape'){
-    await p.locator('#tAim').tap();await waitForADS(p);assert.equal((await p.evaluate(()=>__feelInspect())).aiming,true);
     const cdp=await c.newCDPSession(p),stick=await p.locator('#stick').boundingBox(),fire=await p.locator('#tFire').boundingBox();
     const points=[{id:1,x:stick.x+stick.width/2,y:stick.y+stick.height/2},{id:2,x:width*.55,y:height*.4},{id:3,x:fire.x+fire.width/2,y:fire.y+fire.height/2}];
     const before=Number(await p.locator('#ammo').textContent()),pose=await p.evaluate(()=>__feelInspect());await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points});
@@ -121,7 +122,12 @@ async function feelGauntlet(browser,url,output,errors){
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:points.slice(2)});const released=await p.evaluate(()=>__feelInspect());const releaseSamples=await observeSimulation(p,released.shotInterval+.05);assert.ok(releaseSamples.every(s=>!s.firing&&s.ammo===released.ammo&&s.aiming),'lifting fire finger stops fire independently for a complete firing interval');
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:points.slice(0,2)});await cdp.detach();
    }
-   await p.screenshot({path:path.join(output,name+'-game.png')});await p.locator('#pause').tap();assert.equal(await p.locator('#overlay').isVisible(),true);await c.close();
+   await p.screenshot({path:path.join(output,name+'-game.png')});await p.locator('#pause').tap();assert.equal(await p.locator('#overlay').isVisible(),true);
+   if(name==='portrait'){
+    await p.locator('#backMenu').tap();await p.locator('[data-kit="smg"]').tap();await p.locator('#deploy').tap();await p.locator('#tAim').tap();await waitForADS(p);
+    await p.screenshot({path:path.join(output,'portrait-smg-aim.png')});await p.locator('#tFire').tap();await p.locator('#tReload').tap();await p.waitForFunction(()=>__feelInspect().reloading>0,null,{timeout:10000});await p.screenshot({path:path.join(output,'portrait-smg-reload.png')});
+   }
+   await c.close();
   }
   await feelGauntlet(browser,url,output,errors);
   assert.deepEqual(errors,[]);console.log(JSON.stringify({result:'PASS',browser:browser.version(),cpuThrottle:Number(process.env.BROWSER_CPU_THROTTLE||1),scenarios:['desktop deploy/fire/reload/pause/focus','offline reload/deploy','390x844, 844x390 and 320x740 touch layout/fire/pause','three-finger touch ownership','all weapons: actual captured mouse chords, ADS walk/strafe/fire, sniper optic and magnification'],errors,evidence:output},null,2));

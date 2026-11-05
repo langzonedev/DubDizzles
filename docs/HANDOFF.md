@@ -1,4 +1,6 @@
-# War Dizzles 0.5.0 — laptop and ICT-team handoff
+# War Dizzles 0.5.1 — portrait aiming follow-up
+
+6 November 2026: fixed stretched portrait ADS sleeves by giving the complete weapon and sight a shared vertical viewmodel scale. See [RELEASE_0.5.1.md](RELEASE_0.5.1.md) for source/browser evidence and the outstanding original-phone recheck. Refresh to v0.5.1, cache generation `dub-dizzles-v11`. The 0.5.0 laptop checks below remain applicable.
 
 Date: 5 November 2026, Australia/Adelaide. The operator's repeated report of aim locking while walking is the primary acceptance issue. This pass does not pretend that a green mouse-emulation test proves an actual laptop touchpad is fixed. Existing main/public Pages authority remains in force.
 

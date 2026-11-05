@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Renderer,cameraView,material,wallTextureU} from '../renderer.js';
+import {Renderer,cameraView,material,wallTextureU,weaponScale} from '../renderer.js';
 import {Game,raycast} from '../game.js';
 
 // Execute real renderer decisions with a recording Canvas2D boundary. These are
@@ -8,6 +8,21 @@ import {Game,raycast} from '../game.js';
 function context(){const calls=[];return new Proxy({calls,createLinearGradient:()=>({addColorStop(){}}),createRadialGradient:()=>({addColorStop(){}})},{get(target,key){if(key in target)return target[key];return (...args)=>calls.push([key,...args]);}});}
 function renderer(){const c=context(),r=Object.create(Renderer.prototype);Object.assign(r,{c,ctx:context(),buffer:{width:160,height:90},canvas:{width:160,height:90},z:new Float32Array(160),flash:0,hit:0,hurt:0,walk:0,pitch:0,motion:0,aim:0,recoil:0,lastAmmo:null,lastGame:null,lastPlayer:null,casings:[],reduced:false,materials:[null,{}, {}, {}],soldiers:new Map()});r.sky=(_c,_w,_h,horizon)=>r.observedHorizon=horizon;r.floor=()=>{};r.zone=()=>{};return r;}
 function game(kit='carbine'){const g=new Game({kit});g.bots=[];g.supplies=[];g.grenades=[];g.blasts=[];return g;}
+
+test('portrait ADS preserves arm and weapon proportions at a fixed vertical viewmodel FOV',()=>{
+ for(const kit of ['carbine','smg','marksman'])for(const aim of [0,.54,.56,.94,1]){
+  let expected;
+  for(const [w,h]of [[800,430],[390,844],[360,780],[591,1257],[844,390]]){
+   const r=renderer(),g=game(kit);r.aim=aim;r.gun(g,w,h);
+   const scale=r.c.calls.find(c=>c[0]==='scale');assert.equal(scale[1],h/430);assert.equal(scale[1],scale[2]);
+   // The first three sleeves must have the same local shape on every aspect ratio.
+   const vertices=r.c.calls.filter(c=>c[0]==='moveTo'||c[0]==='lineTo').slice(0,19).map(c=>c.map(v=>typeof v==='number'?Math.round(v*1e8)/1e8:v));
+   if(expected)assert.deepEqual(vertices,expected);else expected=vertices;
+   if(aim===1){const translation=r.c.calls.find(c=>c[0]==='translate'),sx=kit==='marksman'?-52:kit==='smg'?-33:-43,sy=kit==='marksman'?-164:kit==='smg'?-134:-157;assert.ok(Math.abs(translation[1]+sx*scale[1]-w/2)<1e-8);assert.ok(Math.abs(translation[2]+sy*scale[1]-h/2)<1e-8);}
+   assert.equal(weaponScale(w,h),scale[1]);
+  }
+ }
+});
 
 test('scope magnification scales target focal size by four and each kit has distinct ADS',()=>{
  const hip=cameraView('marksman',0);for(const [kit,power]of [['marksman',4],['carbine',1.45],['smg',1.2]]){const ads=cameraView(kit,1);assert.ok(Math.abs(Math.tan(hip.fov/2)/Math.tan(ads.fov/2)-power)<1e-12);assert.equal(ads.scoped,kit==='marksman');}

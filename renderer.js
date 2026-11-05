@@ -3,6 +3,10 @@ import {raycast,TEAM_COLORS,clamp,angleDiff} from './game.js';
 // All art is original and generated locally. No asset downloads or network dependency.
 const TAU=Math.PI*2;
 const HIP_FOV=1.12;
+// A fixed vertical viewmodel FOV keeps hands, receiver and optic in proportion.
+// Width-fitting the gun while extending sleeves to the screen edge stretches
+// forearms on portrait phones. Canvas clipping handles the narrower side edges.
+export function weaponScale(_w,h){return h/430;}
 // Optical magnification uses focal length, so targets scale by the stated ratio.
 export function cameraView(kit,aim=0){const amount=clamp(aim,0,1),power=kit==='marksman'?4:kit==='carbine'?1.45:1.2,magnification=1+(power-1)*amount;return {fov:2*Math.atan(Math.tan(HIP_FOV/2)/magnification),magnification,scoped:kit==='marksman'&&amount>.92};}
 // Wall labels run left-to-right in screen space on each of the four faces.
@@ -172,7 +176,7 @@ export class Renderer{
   ellipse(c,x,y,1.5,1.5,'#edac77');c.fillStyle='#d8e6c5';c.font=`${Math.max(8,r*.055)}px monospace`;c.textAlign='center';c.fillText('4x / LONG DISTANCE HR',x,y+r*.76);c.restore();
  }
  ads(g,w,h){
-  const c=this.c,x=w/2,y=h/2,scale=Math.min(w/800,h/430),short=g.kit==='smg',r=(short?25:33)*scale;
+  const c=this.c,x=w/2,y=h/2,scale=weaponScale(w,h),short=g.kit==='smg',r=(short?25:33)*scale;
   c.save();c.lineJoin='round';
   // Reuse the detailed receiver, rail and gloved hands, with the sight window clear.
   c.save();c.beginPath();c.rect(0,y+r+6*scale,w,h-y-r);c.clip();
@@ -182,7 +186,7 @@ export class Renderer{
   else{c.strokeStyle='#203941';c.lineWidth=8*scale;c.strokeRect(x-r,y-r*.8,r*2,r*1.6);c.strokeStyle='#a4b49b';c.lineWidth=1.3*scale;c.strokeRect(x-r,y-r*.8,r*2,r*1.6);c.fillStyle='#9fe4cf08';c.fillRect(x-r+4*scale,y-r*.8+4*scale,r*2-8*scale,r*1.6-8*scale);ellipse(c,x,y,2*scale,2*scale,'#f0b87d');}
   c.restore();
  }
- gun(g,w,h){const c=this.c,s=Math.min(w/800,h/430),aim=this.aim,reload=g.reloading?1-g.reloading/g.weapon.reload:0,lower=g.reloading?Math.sin(reload*Math.PI):0,bob=this.reduced?0:Math.sin(this.walk*2)*this.motion*3*(1-aim),recoil=this.reduced?0:this.recoil;const kit=g.kit||'carbine',long=kit==='marksman',short=kit==='smg';const sightX=long?-52:short?-33:-43,sightY=long?-164:short?-134:-157,hipX=w*.64,hipY=h+18*s,aimX=w*.5-s*sightX,aimY=h*.5-s*sightY,gunY=hipY+(aimY-hipY)*aim+bob+lower*90*s+recoil*16*s*(1-aim*.85),sleeveEnd=aim>.55?Math.max(28,(h-gunY)/s+28):null;c.save();c.translate(hipX+(aimX-hipX)*aim+(this.reduced?0:Math.cos(this.walk)*this.motion*3*(1-aim)),gunY);c.scale(s,s);c.rotate(this.reduced?0:-lower*.2+recoil*.025);const barrel=long?-210:short?-148:-180,muzzleX=long?-80:short?-45:-64;
+ gun(g,w,h){const c=this.c,s=weaponScale(w,h),aim=this.aim,reload=g.reloading?1-g.reloading/g.weapon.reload:0,lower=g.reloading?Math.sin(reload*Math.PI):0,bob=this.reduced?0:Math.sin(this.walk*2)*this.motion*3*(1-aim),recoil=this.reduced?0:this.recoil;const kit=g.kit||'carbine',long=kit==='marksman',short=kit==='smg';const sightX=long?-52:short?-33:-43,sightY=long?-164:short?-134:-157,hipX=w*.64,hipY=h+18*s,aimX=w*.5-s*sightX,aimY=h*.5-s*sightY,gunY=hipY+(aimY-hipY)*aim+bob+lower*90*s+recoil*16*s*(1-aim*.85),sleeveEnd=aim>.55?Math.max(28,(h-gunY)/s+28):null;c.save();c.translate(hipX+(aimX-hipX)*aim+(this.reduced?0:Math.cos(this.walk)*this.motion*3*(1-aim)),gunY);c.scale(s,s);c.rotate(this.reduced?0:-lower*.2+recoil*.025);const barrel=long?-210:short?-148:-180,muzzleX=long?-80:short?-45:-64;
  // Sleeved arms, wrist straps and articulated gloves surround the actual grip points.
  polygon(c,[[37,sleeveEnd??24],[122,sleeveEnd??26],[65,-91],[30,-105],[10,-73]],'#465e57','#182f36');polygon(c,[[104,sleeveEnd??17],[169,sleeveEnd??28],[89,-65],[57,-78],[45,-53]],'#64786a','#263f42');polygon(c,[[24,-77],[42,-96],[64,-82],[52,-57]],'#1d343b','#0e252c');panel(c,40,-82,15,10,'#667468');polygon(c,[[-132,sleeveEnd??24],[-67,sleeveEnd??24],[-23,-110],[-48,-129],[-74,-103]],'#5c7464','#203c3c');polygon(c,[[-76,-102],[-49,-126],[-28,-112],[-40,-85]],'#253e3e','#142d33');
  // Receiver side, top rail and beveled handguard use separate planes.
