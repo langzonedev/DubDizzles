@@ -4,7 +4,7 @@
 
 ## Status
 
-v0.1.2 playable alpha. Public GitHub Pages deployment verified, with a remote Chrome deployment/pause/resume smoke test; physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
+v0.2.0 playable alpha: refreshed UI, procedural materials and characters, three detailed weapon/hand presentations, aiming, reload/recoil animations, tactical bot movement, sprint stamina, quality settings and richer sound synthesis. Independent automated/source review: 31 passing tests. Physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
 
 Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately retain the original name).
 
@@ -12,10 +12,10 @@ Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately re
 
 Deploy with the Yard Dogs against Rent-a-Tank and HR Department bot crews. Hold the central zone with more presence than either rival; your operator counts as two. First crew to 60 points wins. Objective presence and eliminations pay local, fictional cash. Choose a free carbine, $250 SMG or $400 marksman rifle per life. Redeploys automatically fall back to the free carbine when needed.
 
-- WASD move, mouse look, click or Space fire, Shift sprint.
+- WASD move, mouse look, click or Space fire, Shift sprint, right mouse hold or Q toggle aim.
 - Arrow keys move/turn; drag the battlefield to look if cursor capture is unavailable.
 - R reload, E resupply near a green crate, G grenade, B buy/place $100 cover, Esc pause.
-- Touch: independent move stick, right-side look area and action buttons. Landscape recommended; real device acceptance pending.
+- Touch: independent move stick, right-side look area and action buttons including toggle aim. Landscape recommended; real device acceptance pending.
 
 Supply crates refill health, reserve ammunition and grenades on a cooldown. Grenades break orange cover. Cash/best eliminations persist in browser local storage with an in-memory fallback if storage is blocked. Close other game tabs to install a waiting offline update. Offline use needs a successful first online load on the same browser.
 

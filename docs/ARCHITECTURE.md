@@ -47,3 +47,8 @@ Publish repository-owned static assets to GitHub Pages using relative URLs. Keep
 ## Deliberate limits
 
 This release is a solo arena FPS with bots, not a feature-equivalent recreation of an AAA game. It does not promise online multiplayer, thousands of concurrent players, cross-device saves, accounts or guaranteed support for every browser/graphics stack. Native phone and real Windows playtesting remain required human acceptance evidence where the execution environment cannot provide it.
+
+
+## 0.2.0 visual/gameplay pass
+
+Retains dependency-free Canvas raycasting. Detailed models are original procedural 2D perspective drawings and cached directional sprites, not imported 3D meshes. Materials are generated once and retained; soldier cache is bounded. Graphics setting selects internal rendering resolution and floor sampling; portrait internal height is capped at 1280. Aim changes accuracy/FOV and aligns the illustrated sight. This remains a retro FPS: no vertical aim hit simulation, stacked floors or 3D physics. Evaluate a proper WebGL engine for that future scope. Cached BFS navigation invalidates only when cover changes. Controller settings are optional local storage with malformed-value recovery.

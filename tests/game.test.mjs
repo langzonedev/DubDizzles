@@ -79,7 +79,52 @@ test('rival zone victory produces a recoverable ended match',()=>{
  assert.equal(g.scores[1],60);assert.equal(g.ended,true);assert.equal(game().ended,false);
 });
 test('an unattended deterministic full round ends without spawning extra bots or embedding them in walls',()=>{
- const g=game();for(let i=0;i<2400;i++)g.update(.05);
+ const g=game();for(let i=0;i<3600;i++)g.update(.05);
  assert.equal(g.ended,true);assert.equal(g.bots.length,12);for(const b of g.bots)if(!b.dead)assert.ok(canStand(g.map,b.x,b.y));
  assert.ok(g.scores.some(score=>score===60));
+});
+
+test('aim slows movement, improves precision, and overrides sprint',()=>{
+ const aiming=game(),normal=game();aiming.bots=[];normal.bots=[];
+ aiming.update(.05,{forward:1,aim:true,sprint:true});normal.update(.05,{forward:1});
+ assert.equal(aiming.aiming,true);assert.equal(aiming.sprinting,false);
+ assert.ok(Math.hypot(aiming.player.x-3.5,aiming.player.y-3.5)<Math.hypot(normal.player.x-3.5,normal.player.y-3.5));
+ const makeTarget=g=>{g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:0};g.random=()=>1;g.bots=[{x:6.5,y:3.66,team:1,hp:100,dead:0}];g.weapon={...KITS.smg,spread:.3};};
+ makeTarget(aiming);makeTarget(normal);aiming.fire();normal.fire();
+ assert.ok(aiming.bots[0].hp<100);assert.equal(normal.bots[0].hp,100);
+});
+test('sprinting consumes stamina and releasing sprint recovers it',()=>{
+ const g=game();g.bots=[];advance(g,1,{forward:1,sprint:true});assert.ok(g.stamina<80);assert.equal(g.sprinting,true);
+ const spent=g.stamina;advance(g,.5);assert.ok(g.stamina>spent);assert.equal(g.sprinting,false);
+ g.stamina=0;g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,false);
+});
+test('firing exits sprint and recoil recovers over time',()=>{
+ const g=game();g.bots=[];g.update(.05,{forward:1,sprint:true,fire:true});assert.equal(g.sprinting,false);assert.equal(g.ammo,g.weapon.mag-1);assert.ok(g.recoil>0);
+ advance(g,1);assert.equal(g.recoil,0);
+});
+test('reload transfers only available rounds and cannot restart while active',()=>{
+ const g=game();g.bots=[];g.ammo=0;g.reserve=3;g.reload();const remaining=g.reloading;g.reload();assert.equal(g.reloading,remaining);
+ advance(g,2);assert.equal(g.ammo,3);assert.equal(g.reserve,0);assert.equal(g.reloading,0);
+});
+test('navigation is reused until destructible map geometry changes',()=>{
+ const g=game();g.bots=[];g.update(.05);const field=g.flow;g.update(.05);assert.equal(g.flow,field);
+ g.player={x:13.5,y:13.5,a:0,hp:100,dead:0,inv:0};g.build();assert.equal(g.flowDirty,true);g.update(.05);assert.notEqual(g.flow,field);assert.equal(g.flow[13][15],Infinity);
+ g.grenades=[{x:14.5,y:14.5,t:.01}];g.update(.05);assert.equal(g.flowDirty,true);g.update(.05);assert.ok(Number.isFinite(g.flow[13][15]));
+});
+test('enemy accuracy does not bypass the player spawn shield',()=>{
+ const g=game({random:()=>0});g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:3};
+ g.bots=[{team:1,x:5.5,y:3.5,hp:100,dead:0,a:0,cooldown:0}];g.update(.05);assert.equal(g.player.hp,100);
+});
+test('close-range SMG damage falls off while marksman keeps long-range power',()=>{
+ const targetAt=(g,x)=>{g.map=makeMap();for(let y=1;y<SIZE-1;y++)for(let x=1;x<SIZE-1;x++)g.map[y][x]=0;g.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:0};const b={x,y:3.5,team:1,hp:100,dead:0};g.bots=[b];return b;};
+ const smg=game({kit:'smg'}),close=targetAt(smg,5.5);smg.fire();const closeDamage=100-close.hp;
+ const far=targetAt(smg,22.5);smg.cooldown=0;smg.fire();assert.ok(100-far.hp<closeDamage);
+ const marksman=game({kit:'marksman'}),distant=targetAt(marksman,22.5);marksman.fire();assert.equal(100-distant.hp,KITS.marksman.damage);
+});
+test('holding exhausted sprint recovers to twenty stamina without frame-by-frame sprint jitter',()=>{
+ const g=game();g.bots=[];g.stamina=2;
+ for(let i=0;i<24;i++){g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,false);assert.equal(g.sprintExhausted,true);}
+ assert.equal(g.stamina,20);g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,true);assert.equal(g.sprintExhausted,false);
+ g.stamina=2;g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,false);
+ g.update(.05,{forward:1});assert.equal(g.sprintExhausted,false);g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,true);
 });

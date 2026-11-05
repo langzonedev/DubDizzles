@@ -1,3 +1,19 @@
+# Current release: War Dizzles 0.2.0
+
+This section supersedes version/status claims in the historical handoff below.
+
+Greg authorised a full UI/gameplay/graphics pass and parallel agents on 5 November 2026. Existing authority permits pushing main and public GitHub Pages deployment. Ownership: root integration/release, ux interface author, visuals renderer author, gameplay simulation author, qa_review independent controller/source verification. No external assets or dependencies added.
+
+Implemented: loadout cards and tactical map artwork; HUD/reload/stamina feedback; independent aim control; saved sound/difficulty/sensitivity/quality preferences; concrete/wood/container materials; original directional soldiers; three weapon presentations with gloved hands, reload/recoil/casings and sight alignment; richer synthesised audio; stamina and weapon range/accuracy distinction; tactical bot motion; cached navigation. Existing local wallet, public URL and per-life costs preserved. Player starts facing along the lane; switching match/loadout clears transient shell effects.
+
+Validation: 31 automated tests (25 mechanics, 6 actual-controller harness cases), syntax checks for app/game/renderer/worker. Independent source and seeded-round review is in UPGRADE_REVIEW.md. Remote Chrome preview observed the completed menu, paid marksman selection, high quality setting, rendered gameplay/HUD, Q aim, firing, reload and keyboard fallback when pointer lock was denied. No phone, touch-hardware, full offline reload/update, frame-rate or thermal performance acceptance is implied. Responsive CSS has source review; narrow physical devices need human testing.
+
+Cache generation v6. Close all game tabs and reopen when an update is waiting. Settings use war-dizzles-settings; career retains dub-dizzles-profile. Rollback: revert the release commit and bump the worker cache generation again to deliver the restored bundle.
+
+Release publication evidence is recorded in the GitHub Actions run for this source commit; do not confuse local preview with deployed verification.
+
+---
+
 # Human handoff — War Dizzles v0.1.2
 
 ## What is ready

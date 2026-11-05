@@ -1,5 +1,5 @@
 const PREFIX='dub-dizzles-';
-const CACHE=PREFIX+'v5';
+const CACHE=PREFIX+'v6';
 const ASSETS=['./','./index.html','./style.css','./app.js','./game.js','./renderer.js','./manifest.webmanifest','./icon.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS.map(url=>new Request(url,{cache:'reload'}))))));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith(PREFIX)&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
