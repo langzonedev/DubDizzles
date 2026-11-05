@@ -1,4 +1,4 @@
-# Human handoff — War Dizzles v0.1.0
+# Human handoff — War Dizzles v0.1.1
 
 ## What is ready
 
@@ -46,3 +46,13 @@ Main candidate commit: `ecd2a34a90f16e6389bd7700e2a6b6a7c64f7b7c`.
 GitHub Actions run `41971307113`: **verify SUCCESS** (17 tests, syntax checks, application-only Pages artifact). **deploy FAILURE** at configure-pages: GitHub reported the Pages site was not found and must be enabled/configured for GitHub Actions. The game is committed but is not yet live. After enabling Pages, rerun the failed deployment job or dispatch the workflow. No further source or credential changes are needed for this setup step.
 
 Core portfolio registration: `bbe7718ae096d2d31d9cee2a88c4b0973ce101dd`. The register preserves the historical inventory snapshot counts and adds this candidate separately.
+
+## War Dizzles rename and live publication
+
+The operator enabled GitHub Actions for Pages and renamed the app to **War Dizzles**. Repository and Pages path remain `DubDizzles`. Display title, wordmark, WD icon, manifest name and weapon marking updated; installed-app identity and existing save/cache namespace preserved. Cache generation is now v3.
+
+Rename commit `6f4b1b29c6bf8390dbd5e63e59550f9119d9aaf7` passed verify and deploy in Actions run `41972355799`. Observed live URL: https://langzonedev.github.io/DubDizzles/ . This supersedes the earlier first-publication blocker.
+
+Remote cloud Chrome evidence: renamed landing page and icon/WD wordmark rendered; cache-ready status displayed; Deploy entered a rendered first-person scene with HUD/minimap; pointer lock was unavailable and its explicit keyboard/drag fallback appeared; Escape paused and Space activated focused Resume. No game-origin errors appeared in captured browser logs (browser-extension metadata errors were unrelated). This is a remote-browser smoke test, not a Windows or physical-phone test. Full offline reload/update, sustained mouse capture, real touch comfort and performance remain pending.
+
+The browser walkthrough exposed allies overlapping the operator at initial spawn, causing oversized close-up sprites. Allies now spawn at least two metres away and very close bot billboards are culled; the spawn clearance is covered by the existing mechanics suite. Space now fires on the initial keydown as well as held input, so short taps register on slow rendering frames. The 17 mechanics tests and syntax checks pass after these corrections.

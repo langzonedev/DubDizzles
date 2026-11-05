@@ -9,7 +9,7 @@ test('map boundaries are solid and all starting positions are traversable',()=>{
  const map=makeMap();assert.equal(map.length,SIZE);
  for(let i=0;i<SIZE;i++){assert.ok(map[0][i]);assert.ok(map[SIZE-1][i]);assert.ok(map[i][0]);assert.ok(map[i][SIZE-1]);}
  for(const [x,y]of SPAWNS)assert.ok(canStand(map,x,y));
- const g=game();for(const b of g.bots)assert.ok(canStand(g.map,b.x,b.y));
+ const g=game();for(const b of g.bots){assert.ok(canStand(g.map,b.x,b.y));if(b.team===0)assert.ok(Math.hypot(b.x-g.player.x,b.y-g.player.y)>2,'allies must leave the player spawn clear');}
  assert.equal(canStand(map,-1,1),false);
 });
 test('collision stops at solid wall while allowing movement along it',()=>{
