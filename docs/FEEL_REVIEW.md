@@ -21,7 +21,7 @@ Local environment: Windows, Node 24.19.0, Playwright 1.64.1 and installed headle
 | Journey | Evidence | Result |
 |---|---|---|
 | Both real mouse chord orders | Actual pointer lock; RMB→LMB and LMB→RMB for all three weapons; independent releases | PASS; ammunition decreases, correct held action survives each release |
-| ADS with walk/strafe/fire | Real W+D and captured mouse input; requestAnimationFrame samples of authoritative position, aim and fire over 350ms per weapon | PASS; movement and fire remain active together throughout |
+| ADS with walk/strafe/fire | Real W+D and captured mouse input; requestAnimationFrame samples of authoritative position, aim and fire over 0.35 simulation seconds per weapon, bounded by 10 seconds wall time | PASS; movement and fire remain active together throughout |
 | Marksman optic | Visible circular peripheral mask, centre reticle and 4x label; no foreground gun; actual canvas mask pixels checked | PASS; screenshots inspected |
 | Actual magnification | Controlled imported Game/Renderer scene, same pose and soldier; a test-only magenta calibration mark drawn on that soldier is measured in hip and scoped canvas pixels | PASS; target grows approximately fourfold within the pixel-rounding tolerance, independent of the FOV-helper assertion |
 | Other sights | Carbine reflex and SMG open sight; visible receiver/hands beneath the sight, stable centre while walking | PASS; final all-kit images inspected |
@@ -56,3 +56,11 @@ These are short local desktop workload observations, not isolated workstation be
 High has observable dropped frames in this workload. Performance was the smoothest measured option. These values supersede carrying forward the old cached-sprite renderer's timings; they are not phone/thermal results. No long-run performance guarantee is made.
 
 The next human pass should use real captured mouse input and a physical phone: scope, walk/strafe, fire, release buttons/fingers independently, reload, pause/recover, and judge aiming comfort and enemy readability. The intentionally bounded raycast world still has billboard-style procedural soldiers and a single horizontal play plane. Palette/menu were preserved. Subjective feel and device-specific acceptance remain human judgments rather than agent claims.
+
+## Browser-gate timing correction
+
+The delivery owner reported Linux CI run `42022620877` failing the old smoke assertion that a reload must have completed after a fixed 2.2 seconds of wall time. The bounded game loop can advance less simulation time on a slow software-rendered browser. QA corrected the test timing without changing production assets, cache identity or gameplay rules.
+
+Reloads now wait for observable completion, with a 15-second wall limit. Optic settlement and mouse capture use observable state with a 10-second limit. Concurrent movement/fire samples cover 0.35 or 0.4 seconds of actual simulation, checking that aim and fire remain held in every sample; failure to progress within 10 wall seconds rejects the run. Independent fire release is checked for a complete weapon firing interval plus 50ms of simulation, rather than a short fixed sleep. Service-worker readiness is also bounded. The 90-second total watchdog remains active.
+
+Executed recheck: full expanded Chrome 156.0.8078.80 smoke **PASS**, zero page errors, with test-only CDP CPU throttling set to **4×** on every page, including the unmodified offline-check page. Artifacts: `C:/Users/langa/AppData/Local/Temp/dub-dizzles-qa-tools/timing-throttle4/`. This establishes the revised waits under the stated artificial slowdown; it is not a real slow-device performance result or a claim that the Linux CI rerun has passed. The delivery owner must record that rerun separately.
