@@ -71,8 +71,9 @@ test('a long interruption cannot advance simulation by minutes in one frame',()=
 test('hostile bot damage can kill the player and friendly bots do not target the player',()=>{
  const g=game({random:()=>0});g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,hp:9,dead:0,inv:0};
  g.bots=[{team:1,x:5.5,y:3.5,hp:100,dead:0,a:0,cooldown:0}];g.update(.05);
+ assert.equal(g.player.hp,9,'a newly spotted operator gets a readable acquisition window');advance(g,1);
  assert.equal(g.player.hp,0);assert.equal(g.deaths,1);assert.ok(g.player.dead>0);
- const friendly=game({random:()=>0});friendly.map=emptyMap();friendly.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:0};friendly.bots=[{team:0,x:5.5,y:3.5,hp:100,dead:0,a:0,cooldown:0}];friendly.update(.05);assert.equal(friendly.player.hp,100);
+ const friendly=game({random:()=>0});friendly.map=emptyMap();friendly.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:0};friendly.bots=[{team:0,x:5.5,y:3.5,hp:100,dead:0,a:0,cooldown:0}];advance(friendly,2);assert.equal(friendly.player.hp,100);
 });
 test('rival zone victory produces a recoverable ended match',()=>{
  const g=game();g.scores=[0,59,0];g.tick=.99;g.bots=[{team:1,x:14,y:14,hp:100,dead:0,a:0,cooldown:1}];g.update(.05);
@@ -248,4 +249,52 @@ test('angular vertical aim must intersect the visible soldier body to register a
 test('respawning resets vertical aim without resetting round accuracy',()=>{
  const g=game();g.bots=[];g.player.pitch=.6;g.shots=5;g.hits=2;g.player.dead=.01;g.player.hp=0;g.update(.05);
  assert.equal(g.player.pitch,0);assert.equal(g.shots,5);assert.equal(g.hits,2);
+});
+
+test('round collision footprint clears a box corner without allowing wall penetration',()=>{
+ const map=emptyMap();map[3][3]=1;
+ assert.equal(canStand(map,2.82,2.82),true,'the circular body clears the corner a square probe would snag');
+ assert.equal(canStand(map,2.9,2.9),false);
+ const p={x:2.65,y:2.65};moveEntity(map,p,.17,.17);assert.ok(Math.abs(p.x-2.82)<1e-9);assert.ok(Math.abs(p.y-2.82)<1e-9);
+ for(let i=0;i<30;i++){moveEntity(map,p,.05,.05);assert.ok(canStand(map,p.x,p.y));}
+});
+
+test('ADS responds, stops and reverses immediately with no movement inertia',()=>{
+ const g=game();g.bots=[];g.player.x=14;g.player.y=14;g.player.a=0;
+ g.update(.05,{aim:true,strafe:1});assert.ok(Math.abs(g.player.y-14-KITS.carbine.aimSpeed*.05)<1e-9);
+ const y=g.player.y;g.update(.05,{aim:true});assert.equal(g.player.y,y);assert.equal(g.moving,0);
+ g.update(.05,{aim:true,strafe:-1});assert.ok(g.player.y<y);assert.ok(Math.abs(g.player.y-14)<1e-9);
+});
+
+test('each weapon keeps a deliberate ADS speed while diagonal motion stays normalized',()=>{
+ for(const kit of Object.keys(KITS)){
+  const g=game({kit});g.bots=[];g.player.x=14;g.player.y=14;g.player.a=0;
+  g.update(.05,{aim:true,forward:1,strafe:1,fire:true});
+  assert.ok(Math.abs(Math.hypot(g.player.x-14,g.player.y-14)-KITS[kit].aimSpeed*.05)<1e-9);
+  assert.equal(g.aiming,true);assert.equal(g.shots,1);
+ }
+ assert.ok(KITS.smg.aimSpeed>KITS.carbine.aimSpeed);assert.ok(KITS.carbine.aimSpeed>KITS.marksman.aimSpeed);
+});
+
+test('pressing against cover does not report imaginary walking or add movement spread',()=>{
+ const g=game();g.map=emptyMap();g.bots=[];g.map[3][3]=1;g.player.x=2.78;g.player.y=3.5;g.player.a=0;
+ g.update(.05,{forward:1,aim:true});assert.equal(g.moving,0);assert.equal(g.player.x,2.78);
+});
+
+test('hostiles face the operator before damaging them and reacquire after cover breaks sight',()=>{
+ const g=game({random:()=>0});g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,pitch:0,hp:100,dead:0,inv:0};
+ const b={team:1,x:5.5,y:3.5,a:0,hp:100,dead:0,cooldown:0};g.bots=[b];
+ advance(g,.3);assert.equal(g.player.hp,100,'turning away is not a valid shot');assert.equal(b.alert,1);
+ advance(g,.4);assert.ok(g.player.hp<100);
+ g.map[3][4]=1;advance(g,.1);assert.equal(b.alert,0);
+ g.map[3][4]=0;b.cooldown=0;const hp=g.player.hp;advance(g,.15);assert.equal(g.player.hp,hp,'a new line of sight requires reacquisition');
+ advance(g,.3);assert.ok(g.player.hp<hp);
+});
+
+test('actual hit feedback carries shot damage, distance and body height without changing awards',()=>{
+ const events=[],g=game({onEvent:e=>events.push(e)});g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,pitch:0,hp:100,dead:0,inv:0};
+ const b={team:1,x:5.5,y:3.5,a:Math.PI,hp:100,dead:0,cooldown:100};g.bots=[b];const cash=g.cash;g.fire();
+ const hit=events.find(e=>e.type==='hit');assert.equal(hit.damage,KITS.carbine.damage);assert.equal(hit.distance,3);assert.equal(hit.height,.46);assert.equal(hit.team,1);
+ assert.equal(g.lastShot.damage,hit.damage);assert.equal(g.lastShot.distance,3);assert.equal(g.lastShot.hitHeight,.46);assert.equal(b.hitFlash,.14);assert.equal(g.cash,cash);
+ advance(g,.2);assert.equal(b.hitFlash,0);
 });

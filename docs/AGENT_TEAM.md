@@ -39,3 +39,12 @@ Convergence found a genuine mouse-chord defect (Pointer Events omit the second b
 
 
 0.4.0 closure: G9 independent QA approved final optics/receiver/single-body enemy visuals and 71 passing tests. Linux CI returns were resolved in test tooling without changing the accepted application bytes or relaxing mouse-stability checks. Published candidate f98e814 and verify/deploy run 42025089413 passed; root verified all ten served assets and actual live Edge captured input/offline reload. G10/G11 are released at the stated verification scope. G12 retains the mouse-chord, visible-optic, UTF-8 and headless-binary lessons in FEEL_REVIEW/architecture/release records. Next owner is Greg for human feel and physical-device acceptance.
+
+
+## 0.5.0 overnight laptop/ICT gauntlet
+
+Primary outcome: diagnose repeated trackpad look suppression while walking, improve actual delivered-input responsiveness and provide practical no-held-key controls. Scope also includes collision/ADS movement, enemy fairness/readability, gun/character polish, original ICT Easter eggs and render cost. Root owns controller/profile/UI/integration/release; gameplay owns game.js/mechanics tests; presentation owns renderer.js/renderer tests; qa_gauntlet owns independent controller/browser tests and LAPTOP_REVIEW.md. Each packet returns defects to its author. Existing public-only/solo/local-save and main/Pages authority applies.
+
+Acceptance requires sustained yaw AND pitch changes while moving/aiming/firing when input is delivered, no-held-key cruise+aim+trigger with independent look, safe stop/interruption/death, raw-capture fallback, responsive/worker/offline coverage and visible ICT/character/gun review. Prior checks of movement/ammo alone are insufficient. No claim of OS palm-rejection bypass or physical trackpad acceptance is permitted without actual hardware evidence. Microsoft Precision Touchpad documentation is the evidence for the OS possibility, not proof of this operator's particular laptop configuration.
+
+No OS settings, vendor driver, account, security control or service is changed. Human owner Greg retains the actual laptop/phone feel check. Release and final closure are recorded in LAPTOP_REVIEW.md and RELEASE_0.5.0.md.

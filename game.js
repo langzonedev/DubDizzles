@@ -1,6 +1,6 @@
 // Pure simulation: rendering, device input and storage live outside this module.
 export const SIZE=28;
-export const KITS={carbine:{name:'YARD CARBINE',cost:0,mag:24,damage:36,rate:.16,spread:.045,reload:1.7,range:14,falloff:.58,recoil:.24},smg:{name:'OFFICE SHREDDER',cost:250,mag:36,damage:22,rate:.085,spread:.075,reload:1.4,range:7,falloff:.45,recoil:.15},marksman:{name:'LONG DISTANCE HR',cost:400,mag:10,damage:78,rate:.55,spread:.025,reload:2.1,range:25,falloff:.8,recoil:.55}};
+export const KITS={carbine:{name:'YARD CARBINE',cost:0,mag:24,damage:36,rate:.16,spread:.045,reload:1.7,range:14,falloff:.58,recoil:.24,aimSpeed:2.4},smg:{name:'OFFICE SHREDDER',cost:250,mag:36,damage:22,rate:.085,spread:.075,reload:1.4,range:7,falloff:.45,recoil:.15,aimSpeed:2.55},marksman:{name:'LONG DISTANCE HR',cost:400,mag:10,damage:78,rate:.55,spread:.025,reload:2.1,range:25,falloff:.8,recoil:.55,aimSpeed:2.15}};
 export const TEAM_COLORS=['#9fe4cf','#f3a16d','#c0a7ed'];
 export const SPAWNS=[[3.5,3.5],[24.5,4.5],[24.5,24.5]];
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
@@ -9,8 +9,20 @@ export function makeMap(){const m=Array.from({length:SIZE},(_,y)=>Array.from({le
  const rect=(x,y,w,h,t)=>{for(let j=y;j<y+h;j++)for(let i=x;i<x+w;i++)m[j][i]=t;};
  rect(5,3,2,5,1);rect(10,3,7,2,1);rect(20,3,2,5,1);rect(3,10,5,2,2);rect(3,16,2,5,1);rect(7,20,5,2,2);rect(13,23,5,2,1);rect(20,18,2,6,1);rect(23,10,2,6,2);rect(9,9,2,2,3);rect(17,9,2,2,3);rect(9,17,2,2,3);rect(17,17,2,2,3);rect(13,7,2,1,2);rect(13,20,2,1,2);return m;}
 export function wallAt(map,x,y){return map[Math.floor(y)]?.[Math.floor(x)]??1;}
-export function canStand(map,x,y,r=.22){return ![[x-r,y-r],[x+r,y-r],[x-r,y+r],[x+r,y+r]].some(([a,b])=>wallAt(map,a,b));}
-export function moveEntity(map,p,dx,dy){const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/.15));for(let i=0;i<steps;i++){if(canStand(map,p.x+dx/steps,p.y))p.x+=dx/steps;if(canStand(map,p.x,p.y+dy/steps))p.y+=dy/steps;}}
+// A circular operator footprint glides past corners instead of catching the
+// invisible square made by four corner probes. Tangent contact remains legal.
+export function canStand(map,x,y,r=.22){
+ if(!Number.isFinite(x)||!Number.isFinite(y))return false;
+ for(let ty=Math.floor(y-r);ty<=Math.floor(y+r);ty++)for(let tx=Math.floor(x-r);tx<=Math.floor(x+r);tx++)if(wallAt(map,tx+.5,ty+.5)){
+  const nx=clamp(x,tx,tx+1),ny=clamp(y,ty,ty+1);if((x-nx)**2+(y-ny)**2<r*r-1e-10)return false;
+ }
+ return true;
+}
+export function moveEntity(map,p,dx,dy){const steps=Math.max(1,Math.ceil(Math.max(Math.abs(dx),Math.abs(dy))/.15));for(let i=0;i<steps;i++){
+ const sx=dx/steps,sy=dy/steps;
+ if(canStand(map,p.x+sx,p.y+sy)){p.x+=sx;p.y+=sy;}
+ else{if(canStand(map,p.x+sx,p.y))p.x+=sx;if(canStand(map,p.x,p.y+sy))p.y+=sy;}
+}}
 export function raycast(map,x,y,angle,max=42){const dx=Math.cos(angle),dy=Math.sin(angle);let mx=Math.floor(x),my=Math.floor(y);const ddx=Math.abs(1/dx),ddy=Math.abs(1/dy),sx=dx<0?-1:1,sy=dy<0?-1:1;let tx=(dx<0?x-mx:mx+1-x)*ddx,ty=(dy<0?y-my:my+1-y)*ddy,side=0,d=0;
  for(let n=0;n<100&&d<max;n++){if(tx<ty){d=tx;tx+=ddx;mx+=sx;side=0;}else{d=ty;ty+=ddy;my+=sy;side=1;}if(d>max)break;const tile=map[my]?.[mx]??1;if(tile)return {distance:d,tile,side,x:x+dx*d,y:y+dy*d,mx,my};}return {distance:max,tile:0,side:0,x:x+dx*max,y:y+dy*max};}
 export function visible(map,a,b){const d=Math.hypot(b.x-a.x,b.y-a.y);return raycast(map,a.x,a.y,Math.atan2(b.y-a.y,b.x-a.x),d+.1).distance>d-.15;}
@@ -24,33 +36,33 @@ export class Game{
  equip(){let p=loadoutPurchase(this.cash,this.kit);if(!p.ok){this.kit='carbine';p=loadoutPurchase(this.cash,this.kit);this.event('info','Budget cut: free carbine equipped.');}this.cash=p.wallet;this.weapon=KITS[this.kit];this.ammo=this.weapon.mag;this.reserve=this.weapon.mag*5;this.cooldown=0;this.reloading=0;this.nades=2;}
  spawnBot(team,i){const s=team===0?[3.5,6.5]:SPAWNS[team];return {team,x:s[0]+(i%2)*.65,y:s[1]+Math.floor(i/2)*1.3,hp:100,dead:0,a:0,cooldown:1+this.random()*2,stuck:0,way:Math.floor(this.random()*4)};}
  get accuracy(){return this.shots?this.hits/this.shots*100:0;}
- fire(){if(this.ended||this.player.dead)return false;this.sprinting=false;if(this.cooldown>0||this.reloading>0)return false;if(this.ammo<=0){this.reload();return false;}this.ammo--;this.shots++;this.cooldown=this.weapon.rate;this.event('shot','');const spread=this.weapon.spread*(this.aiming?.4:1)*(1+this.moving*(this.aiming?.15:.8)+this.recoil*(this.aiming?.45:.7));const a=this.player.a+(this.random()-.5)*spread;this.recoil=clamp(this.recoil+this.weapon.recoil,0,1);this.lastShot={x:this.player.x,y:this.player.y,a,pitch:this.player.pitch||0,time:this.time,hit:false};let closest=null,dist=Infinity;for(const b of this.bots){if(b.dead||b.team===0||b.inv>0)continue;const d=Math.hypot(b.x-this.player.x,b.y-this.player.y),shotHeight=.46+Math.tan(this.player.pitch||0)*d;if(shotHeight>=.08&&shotHeight<=1.12&&Math.abs(angleDiff(Math.atan2(b.y-this.player.y,b.x-this.player.x),a))<Math.atan2(.32,d)&&d<dist&&visible(this.map,this.player,b)){closest=b;dist=d;}}if(closest){this.hits++;const damage=this.weapon.damage*(dist<=this.weapon.range?1:Math.max(this.weapon.falloff,1-(dist-this.weapon.range)*.035));this.hurtBot(closest,damage);this.lastShot.hit=true;this.lastShot.target={x:closest.x,y:closest.y};this.event('hit','',{kill:!!closest.dead});}return true;}
- hurtBot(b,damage,credit=true){b.hp-=damage;if(b.hp<=0&&!b.dead){b.dead=5+this.random()*3;if(credit){this.kills++;this.award(100);this.event('reward','+$100 · contractor dismissed');}}}
+ fire(){if(this.ended||this.player.dead)return false;this.sprinting=false;if(this.cooldown>0||this.reloading>0)return false;if(this.ammo<=0){this.reload();return false;}this.ammo--;this.shots++;this.cooldown=this.weapon.rate;this.event('shot','');const spread=this.weapon.spread*(this.aiming?.4:1)*(1+this.moving*(this.aiming?.15:.8)+this.recoil*(this.aiming?.45:.7));const a=this.player.a+(this.random()-.5)*spread;this.recoil=clamp(this.recoil+this.weapon.recoil,0,1);this.lastShot={x:this.player.x,y:this.player.y,a,pitch:this.player.pitch||0,time:this.time,hit:false};let closest=null,dist=Infinity;for(const b of this.bots){if(b.dead||b.team===0||b.inv>0)continue;const d=Math.hypot(b.x-this.player.x,b.y-this.player.y),shotHeight=.46+Math.tan(this.player.pitch||0)*d;if(shotHeight>=.08&&shotHeight<=1.12&&Math.abs(angleDiff(Math.atan2(b.y-this.player.y,b.x-this.player.x),a))<Math.atan2(.32,d)&&d<dist&&visible(this.map,this.player,b)){closest=b;dist=d;}}if(closest){this.hits++;const damage=this.weapon.damage*(dist<=this.weapon.range?1:Math.max(this.weapon.falloff,1-(dist-this.weapon.range)*.035));this.hurtBot(closest,damage);Object.assign(this.lastShot,{hit:true,damage,distance:dist,hitHeight:.46+Math.tan(this.player.pitch||0)*dist});this.lastShot.target={x:closest.x,y:closest.y};this.event('hit','',{kill:!!closest.dead,damage,distance:dist,team:closest.team,height:this.lastShot.hitHeight});}return true;}
+ hurtBot(b,damage,credit=true){b.hp-=damage;b.hitFlash=.14;if(b.hp<=0&&!b.dead){b.dead=5+this.random()*3;if(credit){this.kills++;this.award(100);this.event('reward','+$100 · contractor dismissed');}}}
  reload(){if(!this.ended&&!this.player.dead&&!this.reloading&&this.ammo<this.weapon.mag&&this.reserve>0){this.reloading=this.weapon.reload;this.event('reload','Reloading…');}}
  useSupply(){if(this.ended||this.player.dead)return;const s=this.supplies.find(s=>Math.hypot(s.x-this.player.x,s.y-this.player.y)<1.7);if(!s){this.event('info','Move near a green supply crate (marked + on map).');return;}if((s.ready??0)>this.time){this.event('info','Supply cooling down. Try another crate.');return;}s.ready=this.time+20;this.player.hp=100;this.reserve=this.weapon.mag*5;this.nades=2;this.event('reward','Supplied · health, ammo and grenades restored');}
  build(){if(this.player.dead||this.ended)return;const x=Math.floor(this.player.x+Math.cos(this.player.a)*1.5),y=Math.floor(this.player.y+Math.sin(this.player.a)*1.5);if(this.cash<100){this.event('info','Cover needs $100.');return;}if(this.map[y]?.[x]!==0||this.bots.some(b=>!b.dead&&Math.hypot(b.x-x-.5,b.y-y-.5)<.9)||Math.hypot(this.player.x-x-.5,this.player.y-y-.5)<.9||this.supplies.some(s=>Math.hypot(s.x-x-.5,s.y-y-.5)<1)){this.event('info','No room for cover here.');return;}this.cash-=100;this.map[y][x]=2;this.flowDirty=true;this.event('reward','-$100 · flat-pack fortification placed');}
  grenade(){if(this.player.dead||this.ended||this.nades<=0)return;this.nades--;const hit=raycast(this.map,this.player.x,this.player.y,this.player.a,6);const d=Math.max(.5,Math.min(5,hit.distance-.5));this.grenades.push({x:this.player.x+Math.cos(this.player.a)*d,y:this.player.y+Math.sin(this.player.a)*d,t:1.1});this.event('info','Express delivery. Frag out!');}
  update(dt,input={}){if(this.ended)return;dt=clamp(Number.isFinite(dt)?dt:0,0,.05);const continuingFire=!!input.fire&&this.triggerHeld,shotRemainder=this.cooldown-dt;this.triggerHeld=!!input.fire;this.time+=dt;this.cooldown=Math.max(0,shotRemainder);this.recoil=Math.max(0,this.recoil-dt*1.8);const p=this.player;p.inv=Math.max(0,p.inv-dt);if(this.reloading){this.reloading-=dt;if(this.reloading<=0){const n=Math.min(this.weapon.mag-this.ammo,this.reserve);this.ammo+=n;this.reserve-=n;this.reloading=0;this.event('reloaded','Magazine ready.');}}
- if(p.dead){this.moving=0;this.aiming=false;this.sprinting=false;p.dead-=dt;if(p.dead<=0){Object.assign(p,{x:3.5,y:3.5,pitch:0,hp:100,dead:0,inv:3});this.equip();this.stamina=100;this.sprintExhausted=false;this.recoil=0;this.event('info','Back on the clock. Spawn shield: 3 seconds.');}}else{p.a+=(input.turn||0)*dt*2;const f=clamp(input.forward||0,-1,1),s=clamp(input.strafe||0,-1,1),n=Math.max(1,Math.hypot(f,s));this.moving=Math.min(1,Math.hypot(f,s));this.aiming=!!input.aim&&!this.reloading;if(!input.sprint||this.stamina>=20)this.sprintExhausted=false;if(this.stamina<=2)this.sprintExhausted=true;this.sprinting=!!input.sprint&&f>0&&!this.sprintExhausted&&!this.aiming&&!input.fire;this.stamina=clamp(this.stamina+dt*(this.sprinting?-24:15),0,100);if(this.sprinting&&this.stamina<=2)this.sprintExhausted=true;const speed=(this.sprinting?4:this.aiming?2.15:2.7)*dt;moveEntity(this.map,p,(Math.cos(p.a)*f-Math.sin(p.a)*s)*speed/n,(Math.sin(p.a)*f+Math.cos(p.a)*s)*speed/n);if(input.fire&&this.fire()&&continuingFire)this.cooldown=Math.max(.000001,this.cooldown+Math.min(0,shotRemainder));}
+ if(p.dead){this.moving=0;this.aiming=false;this.sprinting=false;p.dead-=dt;if(p.dead<=0){Object.assign(p,{x:3.5,y:3.5,pitch:0,hp:100,dead:0,inv:3});this.equip();this.stamina=100;this.sprintExhausted=false;this.recoil=0;this.event('info','Back on the clock. Spawn shield: 3 seconds.');}}else{p.a+=(input.turn||0)*dt*2;const f=clamp(input.forward||0,-1,1),s=clamp(input.strafe||0,-1,1),n=Math.max(1,Math.hypot(f,s));this.moving=Math.min(1,Math.hypot(f,s));this.aiming=!!input.aim&&!this.reloading;if(!input.sprint||this.stamina>=20)this.sprintExhausted=false;if(this.stamina<=2)this.sprintExhausted=true;this.sprinting=!!input.sprint&&f>0&&!this.sprintExhausted&&!this.aiming&&!input.fire;this.stamina=clamp(this.stamina+dt*(this.sprinting?-24:15),0,100);if(this.sprinting&&this.stamina<=2)this.sprintExhausted=true;const oldPlayerX=p.x,oldPlayerY=p.y,speed=(this.sprinting?4:this.aiming?(this.weapon.aimSpeed??2.4):2.7)*dt;moveEntity(this.map,p,(Math.cos(p.a)*f-Math.sin(p.a)*s)*speed/n,(Math.sin(p.a)*f+Math.cos(p.a)*s)*speed/n);this.moving=speed>0?clamp(Math.hypot(p.x-oldPlayerX,p.y-oldPlayerY)/speed,0,1):0;if(input.fire&&this.fire()&&continuingFire)this.cooldown=Math.max(.000001,this.cooldown+Math.min(0,shotRemainder));}
  // Breadth-first flow field around buildings and player-built cover.
  if(this.flowDirty||!this.flow){const queue=[],field=Array.from({length:SIZE},()=>Array(SIZE).fill(Infinity));
  // Route to all open objective cells, so one fortification cannot disable every crew.
  for(let y=11;y<=16;y++)for(let x=11;x<=16;x++)if(this.map[y]?.[x]===0&&Math.hypot(x+.5-14,y+.5-14)<3){field[y][x]=0;queue.push([x,y]);}
  for(let q=0;q<queue.length;q++){const [x,y]=queue[q];for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(this.map[ny]?.[nx]===0&&field[ny][nx]===Infinity){field[ny][nx]=field[y][x]+1;queue.push([nx,ny]);}}}this.flow=field;this.flowDirty=false;}const field=this.flow;
  for(let i=0;i<this.bots.length;i++){
-  const b=this.bots[i];if(b.dead){b.dead-=dt;if(b.dead<=0)Object.assign(b,this.spawnBot(b.team,i%4),{vx:0,vy:0,navX:null,navY:null,targetIndex:null,targetIsPlayer:false,walkPhase:0});continue;}
+  const b=this.bots[i];if(b.dead){b.dead-=dt;if(b.dead<=0)Object.assign(b,this.spawnBot(b.team,i%4),{vx:0,vy:0,navX:null,navY:null,targetIndex:null,targetIsPlayer:false,targetTime:0,alert:0,hitFlash:0,walkPhase:0});continue;}
   b.cooldown-=dt;b.inv=Math.max(0,(b.inv||0)-dt);const oldX=b.x,oldY=b.y;
   // Keep a valid opponent until another is substantially closer. Crossing squads
   // should not make a soldier switch his gaze left/right every simulation step.
   const eligible=t=>t&&!t.dead&&!(t===p?b.team===0||p.inv>0:t.team===b.team||t.inv>0)&&Math.hypot(t.x-b.x,t.y-b.y)<9&&visible(this.map,b,t);
-  let target=b.targetIsPlayer?p:this.bots[b.targetIndex];if(!eligible(target))target=null;
+  const previousTarget=b.targetIsPlayer?p:this.bots[b.targetIndex];let target=previousTarget;if(!eligible(target))target=null;
   let near=target?Math.hypot(target.x-b.x,target.y-b.y):9;
   for(const t of [...this.bots,...(b.team!==0?[p]:[])]){if(t===b||!eligible(t))continue;const d=Math.hypot(t.x-b.x,t.y-b.y);if(d<near*(target ? .72 : 1)){target=t;near=d;}}
-  b.targetIsPlayer=target===p;b.targetIndex=target&&target!==p?this.bots.indexOf(target):null;
+  b.targetTime=target?(target===previousTarget?(b.targetTime??0)+dt:dt):0;const reaction=this.skill==='easy'?.42:this.skill==='hard'?.18:.28;b.alert=target?clamp(b.targetTime/reaction,0,1):0;b.targetIsPlayer=target===p;b.targetIndex=target&&target!==p?this.bots.indexOf(target):null;
   let desiredX=0,desiredY=0,heading=b.a;
   if(target){
    const aimAngle=Math.atan2(target.y-b.y,target.x-b.x);heading=aimAngle;b.navX=null;b.navY=null;
-   if(b.cooldown<=0){b.cooldown=(this.skill==='easy'?1.6:this.skill==='hard'?.65:1.05)+this.random()*.6;const chance=target===p?(this.skill==='easy'?.25:this.skill==='hard'?.68:.42):.5;
+   if(b.cooldown<=0&&b.alert>=1&&Math.abs(angleDiff(aimAngle,b.a))<.4){b.cooldown=(this.skill==='easy'?1.6:this.skill==='hard'?.65:1.05)+this.random()*.6;const chance=target===p?(this.skill==='easy'?.25:this.skill==='hard'?.68:.42):.5;
     if(this.random()<chance){if(target===p&&p.inv<=0){p.hp-=this.skill==='hard'?13:9;this.lastDamage={angle:aimAngle+Math.PI,time:this.time};this.event('damage','',{angle:this.lastDamage.angle});if(p.hp<=0){p.hp=0;p.dead=4;this.deaths++;this.event('death','Contract terminated. Redeploying in 4 seconds...');}}else if(target!==p)this.hurtBot(target,26,false);}b.flash=.1;}
    const approach=near>5?.8:near<2.6?-.7:0,strafe=Math.sin(this.time*.85+i*2.1)*.48;
    desiredX=Math.cos(aimAngle)*approach-Math.sin(aimAngle)*strafe;desiredY=Math.sin(aimAngle)*approach+Math.cos(aimAngle)*strafe;
@@ -73,7 +85,7 @@ export class Game{
   moveEntity(this.map,b,b.vx*dt,b.vy*dt);
   const distance=Math.hypot(b.x-oldX,b.y-oldY);b.stuck=distance<Math.hypot(b.vx,b.vy)*dt*.2?(b.stuck??0)+dt:0;
   b.moving=(b.moving??0)+(distance/Math.max(dt,.001)-(b.moving??0))*(1-Math.exp(-dt*16));b.walkPhase=(b.walkPhase??0)+distance*7;
-  b.flash=Math.max(0,(b.flash||0)-dt);
+  b.flash=Math.max(0,(b.flash||0)-dt);b.hitFlash=Math.max(0,(b.hitFlash||0)-dt);
  }
  // Soft separation keeps squads readable without making bots solid player obstacles.
  for(let i=0;i<this.bots.length;i++){const b=this.bots[i];if(b.dead)continue;

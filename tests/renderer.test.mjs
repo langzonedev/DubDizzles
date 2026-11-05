@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Renderer,cameraView} from '../renderer.js';
-import {Game} from '../game.js';
+import {Renderer,cameraView,material,wallTextureU} from '../renderer.js';
+import {Game,raycast} from '../game.js';
 
 // Execute real renderer decisions with a recording Canvas2D boundary. These are
 // geometry/state checks; browser screenshots remain the visual acceptance gate.
@@ -32,7 +32,7 @@ test('carbine reflex and SMG open sights reuse the detailed gun below a clear si
 });
 
 test('continuous soldier facing draws one head with correctly signed left and right profiles',()=>{
- const r=renderer();for(const angle of [0,.1,.4,.7,Math.PI/2,Math.PI,-Math.PI/2]){const c=context();r.drawSoldier(c,0,angle,0,1,80,80,40);assert.equal(c.calls.filter(x=>x[0]==='ellipse'&&x[3]===16&&x[4]===19).length,1);assert.equal(c.calls.filter(x=>x[0]==='drawImage').length,0);}
+ const r=renderer();for(const angle of [0,.1,.4,.7,Math.PI/2,Math.PI,-Math.PI/2]){const c=context();r.drawSoldier(c,0,angle,0,1,80,80,40);assert.equal(c.calls.filter(x=>x[0]==='ellipse'&&x[3]===14&&x[4]===16).length,1);assert.equal(c.calls.filter(x=>x[0]==='drawImage').length,0);}
  const left=context(),right=context();r.soldier(left,0,Math.PI/2);r.soldier(right,0,-Math.PI/2);const muzzle=c=>c.calls.find(x=>x[0]==='fillRect'&&x[2]===67&&x[3]===9&&x[4]===5)[1];assert.ok(muzzle(left)<64);assert.ok(muzzle(right)>64);
 });
 
@@ -42,4 +42,39 @@ test('walking legs and torso articulate continuously without sprite allocation o
 
 test('reduced motion switches optics without zoom animation or walking sway',()=>{
  const r=renderer(),g=game('marksman');r.reduced=true;r.scope=()=>{};r.gun=()=>{};g.aiming=true;r.draw(g,1/144,true);assert.equal(r.aim,1);assert.equal(r.lookScale,.25);g.aiming=false;r.draw(g,1/144,true);assert.equal(r.aim,0);assert.equal(r.observedHorizon,45);
+});
+
+test('sprite occlusion coalesces visible columns while preserving wall-hidden gaps',()=>{
+ const r=renderer(),c=context();r.z=Float32Array.from([9,9,9,1,1,9,9,1]);r.clipSprite(c,0,8,5,10,20);assert.deepEqual(c.calls.filter(x=>x[0]==='rect'),[['rect',0,10,3,20],['rect',5,10,2,20]]);assert.ok(c.calls.some(x=>x[0]==='clip'));
+});
+
+test('view ray geometry is reused until field of view or buffer size changes',()=>{
+ const r=renderer(),a=r.prepareRays(800,1.12);assert.equal(r.prepareRays(800,1.12),a);assert.equal(a.offsets.length,800);assert.equal(a.offsets[400],0);assert.ok(Math.abs(a.cosines[0]-Math.cos(a.offsets[0]))<1e-7);assert.notEqual(r.prepareRays(800,.7),a);assert.equal(r.prepareRays(480,.7).offsets.length,480);
+});
+
+test('original ICT crate variants contain readable shipment and service-desk details',()=>{
+ const original=globalThis.document;globalThis.document={createElement(){const c=context();return {getContext:()=>c,calls:c.calls};}};
+ try{const labels=[0,1,2].map(n=>material(2,n).calls.filter(x=>x[0]==='fillText').map(x=>x[1]).join(' / '));assert.match(labels[0],/DELL.*RMA/);assert.match(labels[1],/FRAGILE.*SERVER KIT.*TICKET/);assert.match(labels[2],/ICT STORES.*PATCH PANEL.*NO TICKET/);}finally{globalThis.document=original;}
+});
+
+test('Auto quality responds to sustained pressure with bounded rare resizing and slow recovery',()=>{
+ const r=renderer();let resizes=0;r.resize=()=>resizes++;r.quality='auto';for(let n=0;n<10;n++)r.frameBudget(.03);assert.equal(resizes,0);for(let n=0;n<600;n++)r.frameBudget(.03);assert.ok(Math.abs(r.autoScale-.6)<1e-8);assert.equal(resizes,4);const before=resizes;for(let n=0;n<420;n++)r.frameBudget(1/60);assert.equal(resizes,before);for(let n=0;n<80;n++)r.frameBudget(1/60);assert.ok(r.autoScale>.6&&r.autoScale<.7);const scale=r.autoScale;r.quality='high';for(let n=0;n<100;n++)r.frameBudget(.05);assert.equal(r.autoScale,scale);assert.equal(cameraView('marksman',1).magnification,4);
+});
+
+test('settled ADS and hip views reuse exact ray arrays even while the player walks',()=>{
+ const r=renderer(),g=game('marksman');r.scope=()=>{};r.gun=()=>{};
+ for(const aimed of [true,false]){g.aiming=aimed;for(let n=0;n<24;n++)r.draw(g,1/60,true);assert.equal(r.aim,aimed?1:0);const rays=r.rayView;for(let n=0;n<12;n++){g.player.x+=.001;r.draw(g,1/60,true);assert.equal(r.rayView,rays);}}
+});
+
+test('wall labels progress left-to-right on all four faces and repeated headings',()=>{
+ const map=[[2,2,2],[2,0,2],[2,2,2]];
+ for(const heading of [0,Math.PI/2,Math.PI,-Math.PI/2])for(const revolution of [-Math.PI*4,0,Math.PI*4]){
+  const a=heading+revolution,left=raycast(map,1.5,1.5,a-.12),right=raycast(map,1.5,1.5,a+.12);
+  assert.equal(left.side,right.side);assert.ok(wallTextureU(left,a-.12)<wallTextureU(right,a+.12),`heading ${a}`);
+ }
+});
+
+test('Auto quality handles sustained four-FPS pressure without reacting to one isolated stall',()=>{
+ const r=renderer();r.quality='auto';let resizes=0;r.resize=()=>resizes++;r.frameBudget(.8);assert.equal(resizes,0);for(let n=0;n<20;n++)r.frameBudget(1/60);assert.equal(resizes,0);for(let n=0;n<10;n++)r.frameBudget(.25);assert.equal(resizes,1);assert.ok(Math.abs(r.autoScale-.9)<1e-8);for(let n=0;n<4;n++)r.frameBudget(.25);assert.equal(resizes,1);r.frameBudget(2);assert.equal(resizes,1);r.frameBudget(.25,false);assert.equal(resizes,1);
+ for(const quality of ['low','high']){r.quality=quality;for(let n=0;n<30;n++)r.frameBudget(.25);assert.equal(resizes,1);}
 });

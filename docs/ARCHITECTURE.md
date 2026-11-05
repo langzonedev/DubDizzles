@@ -72,3 +72,18 @@ The renderer uses cameraView focal magnification (4x marksman, 1.45x carbine, 1.
 ADS retains 80% of ordinary movement speed and a small moving accuracy penalty. Optional view bob/sway is suppressed in ADS. The controller interpolates display positions and bot headings between fixed simulation steps, keeping authoritative collision/hits separate and player look immediate. Teleports/death/respawn do not interpolate across the map. Stable display-object identity avoids resetting weapon animation every frame.
 
 Bots retain targets until a materially closer threat arrives, commit navigation waypoints, steer velocity/heading continuously, and advance walking phase from distance travelled. A single procedural soldier silhouette articulates from continuous signed facing, with legs driven by travelled distance. It avoids overlapping directional sprites, extra offscreen canvases and sprite-cache growth. Static reduced-motion alternatives remain supported.
+
+## 0.5.0 laptop controls and frame budget
+
+The input controller explicitly separates physical held inputs from cruise direction and trigger latches. C begins/ends cruise; while active, WASD taps toggle normalized axes without requiring held keys. F toggles the laptop trigger. X clears motion/trigger, and pause/menu/blur/death clear all transient inputs. Orphan key repeats after a reset are ignored until a fresh press. Q aim remains independent. Look consumes every delivered mouse delta regardless of locomotion. No artificial mouse motion is invented when a driver sends none.
+
+The laptop profile uses adjusted pointer movement and independent ADS gain. Mouse profile requests unadjustedMovement with a NotSupportedError normal-pointer-lock fallback; duplicate capture requests are guarded. Neither path bypasses OS touchpad accidental-activation prevention. The in-game manual links the vendor's public explanation and offers the no-held-key route, without changing OS settings.
+
+Player collision now uses a circular footprint and tries full-vector movement before sliding; actual travelled distance drives movement presentation. Bots acquire and face targets before damage, exposing alert/hitFlash for renderer cues. These are pure simulation fields. UI/input/persistence stay outside game.js.
+
+The renderer caches view-ray geometry, coalesces sprite visibility spans, retains bounded original material variants, and adapts only Auto quality after sustained frame pressure. The controller supplies uncapped frame elapsed time and active-playing state to frameBudget; the simulation catch-up cap remains independent. Internal resolution changes do not alter angular look/hit contracts. Auto has a lower scale bound, resize cooldown and slow recovery; explicit Performance/High choices remain fixed. Tiny completed ADS transitions snap to their target so invisible zoom tails cannot keep invalidating caches.
+
+ICT labels are locally generated textures, including Dell text in an original RMA label. No remote art, brand downloads, telemetry, device APIs or native settings control were introduced.
+
+
+The optional menu input check counts only how many mouse events arrive with/without WASD held. It captures no coordinates, arbitrary key text, device IDs or event history, writes no storage, makes no network requests and stops on timeout/interruption/deploy. It is a local troubleshooting aid, not proof of driver state. Browser test inspection/traces remain response-injected test tooling excluded from the application artifact.

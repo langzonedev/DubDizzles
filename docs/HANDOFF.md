@@ -1,33 +1,39 @@
-# War Dizzles 0.4.0 — combat-feel handoff
+# War Dizzles 0.5.0 — laptop and ICT-team handoff
 
-Date: 5 November 2026 (Australia/Adelaide). The operator requested another agent gameplay gauntlet after observing absent sniper optics, sluggish walking ADS and janky guns/enemies. Main/Pages authority and public browser-only boundaries remain unchanged. The original palette and deployment menu are preserved.
+Date: 5 November 2026, Australia/Adelaide. The operator's repeated report of aim locking while walking is the primary acceptance issue. This pass does not pretend that a green mouse-emulation test proves an actual laptop touchpad is fixed. Existing main/public Pages authority remains in force.
 
 Play: https://langzonedev.github.io/DubDizzles/
 
-## This pass
+## First morning check
 
-- Genuine 4x sniper optic, circular peripheral mask and calibrated reticle; gun hidden once scoped.
-- Distinct carbine reflex and SMG open sights, steadier ADS and magnification-scaled look sensitivity.
-- Fixed actual mouse-button chord handling: aim then fire, or fire then aim; independent releases work while walking/strafing.
-- Angular vertical aiming now affects direct hits and shot effects; camera and reticle share the same projection.
-- Faster aimed walking/strafing with a smaller precision penalty; smooth display interpolation while player look remains immediate.
-- Smoother bot turning, acceleration, target selection, navigation and continuous distance-driven leg animation.
+1. Refresh to v0.5.0 and select Laptop / trackpad. Q toggles aim. C starts cruise without a held W key; tap WASD to toggle directions/diagonals, then release the keys. F toggles the trigger. C stops cruise; X stops movement and firing; Escape pauses. These controls provide a way to aim/move/fire without continuously holding keyboard keys or multiple trackpad buttons.
+2. Move the trackpad while holding W/D with Q aiming. Compare that with the same finger movement after releasing those keys, then with C cruise. If pointer movement only stops during held keys, the OS/driver may be suppressing its events.
+3. For normal held-WASD play on Windows Precision Touchpads, try Settings → Bluetooth & devices → Touchpad → Taps → Touchpad sensitivity → Most sensitive. Location/support can vary by driver. [Microsoft documents suppression after keyboard input](https://learn.microsoft.com/en-us/windows-hardware/design/component-guidelines/touchpad-tuning-guidelines). The game does not modify Windows or driver settings and cannot restore input never delivered by the driver.
+4. Tune Look and ADS speed separately. Mouse / raw input uses unadjusted pointer capture where supported with a normal-capture fallback; laptop mode preserves adjusted trackpad input. Test aim while walking, diagonal strafing and reversing, with continuous look in both axes.
 
-Independent findings, test totals and browser evidence: [FEEL_REVIEW.md](FEEL_REVIEW.md). Published candidate f98e814 and verify/deploy run 42025089413 passed; root verified the served asset hashes and actual captured-mouse/offline gameplay on the public URL. Full publication evidence: [RELEASE_0.4.0.md](RELEASE_0.4.0.md). Previous release records remain in RELEASE_0.3.0.md and GAUNTLET_REVIEW.md.
+## Delivered slice
 
-## Human acceptance route
+- Laptop profile, visible cruise/trigger state, no-held-key movement/trigger alternatives, emergency stop and interruption/death cleanup.
+- Separate ADS sensitivity, independent look processing and raw mouse capture fallback.
+- Circular collision/full-vector wall sliding, actual-travel walking feedback and immediate ADS stop/reverse with weapon-specific speeds.
+- Enemy acquisition/facing lead before firing, hit/readiness feedback and readable character/weapon material details.
+- Original ICT/RMA/FRAGILE/server/patch-panel/ticket crate variants with a Dell-text nod. No downloaded brand art or third-party game assets.
+- Cached ray geometry, reduced occlusion path work and Auto internal-resolution adaptation after sustained frame pressure, with slow recovery and no input scaling changes.
 
-1. Pick Long Distance HR. Hold RMB or press Q: a real 4x optic replaces the foreground gun. Aim at enemies at different heights; check that the visible reticle predicts hits.
-2. Hold W/D while aiming and firing. Try RMB then LMB, reverse the order, and release each independently. Reload while holding aim; scope should leave during reload and return afterward.
-3. Try the carbine and SMG sights, judge weapon visibility, turning sensitivity and strafing comfort. Watch nearby enemies turn and walk, then play a complete round and restart.
-4. On a physical phone, toggle AIM and move/look/fire with separate fingers. Try portrait/landscape, interruption/resume, reload and offline reopening. Human comfort, sustained heat and subjective enjoyment remain open; browser emulation cannot certify them.
+The original palette, deployment composition, solo match loop, wallet/save identities and per-life economy remain. No accounts, telemetry, purchases, server or multiplayer were added.
 
-## Operations and recovery
+## Evidence and publication
 
-Run npm run verify; CI also runs tests/browser-smoke.cjs with isolated Playwright tools before Pages publication. Only the static application assets ship; no accounts, telemetry, purchases, third-party game assets or server were introduced. Local wallet/settings and per-life costs are unchanged.
+Independent source/controller/browser results and remaining hardware conditions are in [LAPTOP_REVIEW.md](LAPTOP_REVIEW.md). Exact release commit, Actions run and live checks are recorded in [RELEASE_0.5.0.md](RELEASE_0.5.0.md) after publication. Historical 0.4.0 evidence remains in FEEL_REVIEW.md and RELEASE_0.4.0.md.
 
-Cache generation is dub-dizzles-v9. The complete bundle installs before activation, preserves other apps' caches, and never forces an active match reload. Refresh to load the new version. Existing loaded pages may keep their prior version until refreshed. To roll back, revert the application commit, increment the worker cache again, let verify/browser/deploy complete, and inspect the live game plus offline reload. Local wallet is client-owned and not real money or an authoritative competitive record.
+Run npm run verify. The browser gauntlet runs regular Chromium, preserves the strict no-camera-warp check and uses bounded simulation-state waits. Physical touchpad palm rejection, phone comfort, heat and enjoyment require actual device/human evidence; synthetic events are not those checks.
 
-## Learning
+## Next human gameplay pass
 
-Test actual mouse-button chords, not just synthetic pointerdown events. Verify the visible optic, target magnification and reticle alignment, not just an aiming boolean. Separate simulation timing from display interpolation. Use explicit UTF-8 when authoring cross-platform source files. These lessons are recorded with the concrete defects and checks in the independent feel review.
+Play two rounds with the new laptop controls and then with your preferred physical mouse/trackpad setup. Try all three sights, aim/walk/fire and reverse direction, corners/wall sliding, supplies/cover/grenades, damage/death/redeploy, pause/recovery and restart. Judge targeting comfort, readable enemies, gun presentation, ICT humour and whether the loop is fun. Check phone portrait/landscape multi-touch separately. Unattended bot outcomes are completion evidence, not proof of competitive balance.
+
+## Operations
+
+Cache generation: dub-dizzles-v10. A full bundle must cache before activation; other apps' caches are untouched, and an active match is not forcibly reloaded. Refresh to use the new version. Wallet/best remain dub-dizzles-profile, preferences war-dizzles-settings. Denied storage leaves session play; local cash has no real-money or trusted competitive value.
+
+Rollback: revert the application change, increment the worker cache again, rerun verify/browser/deploy, and inspect the live page plus offline reopening. No OS setting, credential or account change is part of this release.
