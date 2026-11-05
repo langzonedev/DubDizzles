@@ -38,3 +38,11 @@ No backend or ongoing game-server fee. No accounts or telemetry. Local cash and 
 Core AGENTS blob adopted: `9b041baf974b9b2de460eaeb4384949c15cc6754`. Accountable delivery: root; independent source mechanics/security review: qa_security; independent source UX review: design_review; human game-feel/production acceptance: Greg.
 
 Metaverse Mobile README, docs/MOBILE_CONTRACT.md and docs/IMPLEMENTATION_STATUS.md were consulted where available for reusable lessons. Use per-pointer touch ownership, normalised movement, wall sliding, safe-area layout and bounded time steps. No Unity code/assets were transferred to this public repo. Any future genuine physics/terrain migration should assess a WebGL engine rather than expanding the raycaster into a second Unity runtime.
+
+## Published source / CI result
+
+Main candidate commit: `ecd2a34a90f16e6389bd7700e2a6b6a7c64f7b7c`.
+
+GitHub Actions run `41971307113`: **verify SUCCESS** (17 tests, syntax checks, application-only Pages artifact). **deploy FAILURE** at configure-pages: GitHub reported the Pages site was not found and must be enabled/configured for GitHub Actions. The game is committed but is not yet live. After enabling Pages, rerun the failed deployment job or dispatch the workflow. No further source or credential changes are needed for this setup step.
+
+Core portfolio registration: `bbe7718ae096d2d31d9cee2a88c4b0973ce101dd`. The register preserves the historical inventory snapshot counts and adds this candidate separately.
