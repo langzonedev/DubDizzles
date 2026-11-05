@@ -1,1 +1,31 @@
-{"id":"./","name":"War Dizzles — Budget Warfare","short_name":"War Dizzles","start_url":"./","scope":"./","display":"standalone","background_color":"#101a23","theme_color":"#101a23","description":"Three crews. One dusty yard. Original solo browser FPS by Lang Systems.","icons":[{"src":"./icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]}
+{
+  "id": "./",
+  "name": "War Dizzles - Budget Warfare",
+  "short_name": "War Dizzles",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101a23",
+  "theme_color": "#101a23",
+  "description": "Three crews. One dusty yard. Original solo browser FPS by Lang Systems.",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

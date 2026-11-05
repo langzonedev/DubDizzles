@@ -11,22 +11,39 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: npm test
-      - run: node --check app.js && node --check renderer.js && node --check sw.js
+      - run: npm run verify
+      - name: Install isolated browser verification tools
+        run: |
+          npm install --prefix "$RUNNER_TEMP/war-dizzles-tools" --no-audit --no-fund playwright@1.64.1
+          "$RUNNER_TEMP/war-dizzles-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Verify browser gameplay, touch layout and offline reload
+        env:
+          PLAYWRIGHT_MODULE: ${{ runner.temp }}/war-dizzles-tools/node_modules/playwright
+          BROWSER_EVIDENCE_DIR: ${{ runner.temp }}/war-dizzles-evidence
+        run: node tests/browser-smoke.cjs
+      - name: Retain browser evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-evidence
+          path: ${{ runner.temp }}/war-dizzles-evidence
+          if-no-files-found: ignore
       - name: Package public application only
         run: |
           mkdir _site
-          cp index.html style.css app.js game.js renderer.js sw.js manifest.webmanifest icon.svg .nojekyll _site/
+          cp index.html style.css app.js game.js renderer.js sw.js manifest.webmanifest icon.svg icon-192.png icon-512.png .nojekyll _site/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
   deploy:
     needs: verify
+    timeout-minutes: 5
     permissions:
       pages: write
       id-token: write

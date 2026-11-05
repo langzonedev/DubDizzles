@@ -52,3 +52,13 @@ This release is a solo arena FPS with bots, not a feature-equivalent recreation 
 ## 0.2.0 visual/gameplay pass
 
 Retains dependency-free Canvas raycasting. Detailed models are original procedural 2D perspective drawings and cached directional sprites, not imported 3D meshes. Materials are generated once and retained; soldier cache is bounded. Graphics setting selects internal rendering resolution and floor sampling; portrait internal height is capped at 1280. Aim changes accuracy/FOV and aligns the illustrated sight. This remains a retro FPS: no vertical aim hit simulation, stacked floors or 3D physics. Evaluate a proper WebGL engine for that future scope. Cached BFS navigation invalidates only when cover changes. Controller settings are optional local storage with malformed-value recovery.
+
+## 0.3.0 polish and recovery
+
+The controller uses 1/120-second simulation steps with at most 100ms catch-up per rendered frame; hidden-tab/pause resets clear the accumulator. Rendering remains independent. HUD text changes are cached, normal HUD work is capped at 20Hz and minimap at 10Hz; menu/paused backgrounds render at 30Hz. Audio noise buffers are reused and transient nodes disconnect after playback. The Canvas output preserves aspect at up to 1920x1080; the internal renderer has quality-specific pixel budgets in portrait and landscape.
+
+Held automatic fire retains fractional cooldown for stable cadence; tapping the trigger interrupts sprint. Bot navigation seeds the open objective area so one central barricade cannot invalidate all paths, and soft separation reduces squad overlap without blocking player movement. Match-local shot/hit counters exclude grenades and rejected shots. Recent-shot and incoming-damage effects retain one record each; tracer work and sprite/shell lifetimes remain bounded.
+
+Input mode follows the active pointer, preserving mouse use on touchscreen laptops. Each touch action has independent ownership and lost-capture recovery. Pause makes the background inert, contains keyboard focus, clears inputs and supports Escape to resume; Tab during play opens pause. Reduced motion suppresses optional flashing/moving effects but retains HP, static kill text and directional threat information. Full-forward touch movement requests sprint.
+
+PNG installation icons are rasterizations of the original project WD SVG, padded for maskable launchers. The worker precaches them with the complete v8 bundle. Build/CI browser tools are isolated from the application artifact. No server, telemetry, remote assets or account surface was introduced.

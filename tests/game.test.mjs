@@ -128,3 +128,75 @@ test('holding exhausted sprint recovers to twenty stamina without frame-by-frame
  g.stamina=2;g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,false);
  g.update(.05,{forward:1});assert.equal(g.sprintExhausted,false);g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,true);
 });
+
+test('automatic weapon cadence remains consistent from 20 to 144 simulation frames per second',()=>{
+ for(const kit of ['carbine','smg','marksman']){
+  const shots=[];
+  for(const fps of [20,30,60,144]){const g=game({kit});g.bots=[];for(let i=0;i<fps*1.5;i++)g.update(1/fps,{fire:true});shots.push(g.weapon.mag-g.ammo);}
+  assert.ok(Math.max(...shots)-Math.min(...shots)<=1,`${kit} cadence varies: ${shots}`);
+  assert.ok(Math.min(...shots)>=Math.floor(1.5/KITS[kit].rate),`${kit} should retain its advertised rate`);
+ }
+});
+
+test('long movement vectors cannot tunnel through thin cover',()=>{
+ const map=emptyMap();map[3][3]=2;const p={x:1.5,y:3.5};moveEntity(map,p,4,0);
+ assert.ok(p.x<3);assert.ok(canStand(map,p.x,p.y));
+});
+
+test('raycasts stop at their requested range before distant geometry',()=>{
+ const map=emptyMap();map[3][4]=1;const hit=raycast(map,2.5,3.5,0,1);
+ assert.equal(hit.distance,1);assert.equal(hit.tile,0);assert.equal(hit.x,3.5);
+});
+
+test('fortifying the centre cell preserves navigation to the rest of the objective',()=>{
+ const g=game();g.map[14][14]=2;g.update(.05);
+ assert.equal(g.flow[14][14],Infinity);
+ for(const [x,y] of SPAWNS)assert.ok(Number.isFinite(g.flow[Math.floor(y)][Math.floor(x)]));
+ const before=g.bots.map(b=>Math.hypot(b.x-14,b.y-14));advance(g,8);
+ assert.ok(g.bots.some((b,i)=>Math.hypot(b.x-14,b.y-14)<before[i]-2));
+});
+
+test('soft squad separation resolves overlapping bots without pushing them through walls',()=>{
+ const g=game();g.player.inv=100;g.bots=[0,1].map(()=>({team:0,x:3.5,y:8,hp:100,dead:0,a:0,cooldown:100}));
+ advance(g,.5);const [a,b]=g.bots;
+ assert.ok(Math.hypot(a.x-b.x,a.y-b.y)>.4);
+ for(const bot of g.bots)assert.ok(canStand(g.map,bot.x,bot.y));
+});
+
+test('invalid time deltas cannot poison match state',()=>{
+ const g=game();g.bots=[];g.update(NaN);g.update(Infinity);g.update(-1);
+ assert.equal(g.time,0);assert.equal(g.player.hp,100);assert.ok(Number.isFinite(g.player.x));
+});
+
+test('reload completion emits one readiness event and ended matches reject resource actions',()=>{
+ const events=[],g=game({onEvent:e=>events.push(e)});g.bots=[];g.ammo=0;g.reload();advance(g,3);
+ assert.equal(events.filter(e=>e.type==='reloaded').length,1);
+ g.ended=true;g.ammo=1;g.reload();assert.equal(g.reloading,0);
+ g.player.y=5.5;g.player.hp=10;g.nades=0;g.useSupply();assert.equal(g.player.hp,10);assert.equal(g.nades,0);
+});
+
+test('objective notices announce ownership changes without flooding during rapid contests',()=>{
+ const events=[],g=game({onEvent:e=>events.push(e)});g.bots=[];g.player.x=14;g.player.y=14;g.update(.05);
+ assert.deepEqual(events.filter(e=>e.type==='objective').map(e=>e.owner),[0]);
+ g.player.x=3.5;g.player.y=3.5;advance(g,1);g.player.x=14;g.player.y=14;advance(g,1);
+ assert.equal(events.filter(e=>e.type==='objective').length,1);
+ g.player.x=3.5;g.player.y=3.5;advance(g,1.5);
+ assert.deepEqual(events.filter(e=>e.type==='objective').map(e=>e.owner),[0,-1]);
+});
+
+test('a short trigger tap interrupts an active sprint without bypassing weapon timing',()=>{
+ const g=game();g.bots=[];g.update(.05,{forward:1,sprint:true});assert.equal(g.sprinting,true);
+ assert.equal(g.fire(),true);assert.equal(g.sprinting,false);assert.equal(g.ammo,g.weapon.mag-1);
+ g.sprinting=true;assert.equal(g.fire(),false);assert.equal(g.ammo,g.weapon.mag-1);assert.equal(g.sprinting,false);
+ g.cooldown=0;g.reload();g.sprinting=true;assert.equal(g.fire(),false);assert.equal(g.sprinting,false);
+});
+
+test('round accuracy counts fired bullets and direct hits, excluding rejected shots and grenades',()=>{
+ const g=game();assert.equal(g.shots,0);assert.equal(g.hits,0);assert.equal(g.accuracy,0);
+ g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,hp:100,dead:0,inv:0};const enemy={x:5.5,y:3.5,team:1,hp:100,dead:0};g.bots=[enemy];
+ g.fire();assert.equal(g.shots,1);assert.equal(g.hits,1);assert.equal(g.accuracy,100);
+ g.fire();assert.equal(g.shots,1);g.cooldown=0;g.player.a=Math.PI/2;g.fire();assert.equal(g.shots,2);assert.equal(g.hits,1);assert.equal(g.accuracy,50);
+ g.grenades=[{x:enemy.x,y:enemy.y,t:.01}];g.update(.05);assert.equal(g.hits,1);assert.equal(g.shots,2);
+ g.player.dead=.01;g.player.hp=0;g.update(.05);assert.equal(g.shots,2);assert.equal(g.hits,1);
+ const fresh=game();assert.equal(fresh.shots,0);assert.equal(fresh.hits,0);assert.equal(fresh.accuracy,0);
+});
