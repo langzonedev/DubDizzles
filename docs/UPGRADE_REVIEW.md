@@ -4,7 +4,7 @@ Review date: 5 November 2026. Reviewer: separate QA execution from the app, rend
 
 ## Executed evidence
 
-- `npm test`: 31/31 passed after final fixes (25 mechanics and 6 controller/input tests).
+- `npm test`: 34/34 passed after final fixes (25 mechanics, 6 controller/input and 3 service-worker lifecycle tests).
 - `node --check app.js`, `renderer.js`, `game.js`, `sw.js`: passed.
 - Additional independent seeded simulation: 60 unattended matches across easy/normal/hard, every match ended within 205 simulation seconds; no living bot had nonfinite coordinates or intersected solid world geometry.
 - DOM contract inspection: no duplicate IDs. Literal app references resolve, including the added labelled stamina display with a maximum of 100.
@@ -32,4 +32,10 @@ Floor sampling and increased resolution add per-frame CPU work, especially High 
 
 ## Release status
 
-Final source and simulation re-review passes: all actionable findings above are resolved, and the final 31-test suite and JavaScript syntax checks were independently rerun successfully. The delivery owner reports remote desktop-browser observations of the menu, live firing and reload; those observations are attributed to the owner and are not an independent device test by this reviewer. The owner must verify the published revision and record deployment evidence before representing publication as complete. Physical-device and full offline acceptance remain explicitly pending until observed.
+Final source and simulation re-review passes: all actionable findings above are resolved, and the final 34-test suite and JavaScript syntax checks were independently rerun successfully. The delivery owner reports remote desktop-browser observations of the menu, live firing and reload; those observations are attributed to the owner and are not an independent device test by this reviewer. The owner must verify the published revision and record deployment evidence before representing publication as complete. Physical-device and full offline acceptance remain explicitly pending until observed.
+
+## Final update-lifecycle follow-up
+
+The delivery owner observed an older cached release persisting in the remote browser. Independent follow-up review inspected cache v7 and reran all 34 tests successfully. `skipWaiting()` now runs only after the complete refreshed asset bundle has been precached; a rejected cache install prevents activation. Activation deletes only older `dub-dizzles-` caches and claims clients without a forced page navigation. The three lifecycle tests cover success ordering, failed-install rejection and app-scoped cleanup/claim. These are worker-API harness tests; they do not establish a full offline reload on a physical device. The current already-loaded match keeps its JavaScript until the next normal reload.
+
+The initial player heading now points along the spawn lane (`Math.PI/2`); the controller fallback test checks actual displacement without depending on heading. Renderer source now resets ammo comparison, casings and recoil on a new game identity, preventing a smaller selected magazine from being mistaken for a shot. Syntax checks for the changed worker, renderer and simulation pass. No new blocker found in this follow-up.
