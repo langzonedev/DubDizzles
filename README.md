@@ -4,7 +4,7 @@
 
 ## Status
 
-v0.2.0 playable alpha: refreshed UI, procedural materials and characters, three detailed weapon/hand presentations, aiming, reload/recoil animations, tactical bot movement, sprint stamina, quality settings and richer sound synthesis. Independent automated/source review: 31 passing tests. Physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
+v0.2.0 playable alpha: refreshed UI, procedural materials and characters, three detailed weapon/hand presentations, aiming, reload/recoil animations, tactical bot movement, sprint stamina, quality settings and richer sound synthesis. Independent automated/source review: 34 passing tests. Physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
 
 Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately retain the original name).
 
