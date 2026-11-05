@@ -51,7 +51,7 @@ This release is a solo arena FPS with bots, not a feature-equivalent recreation 
 
 ## 0.2.0 visual/gameplay pass
 
-Retains dependency-free Canvas raycasting. Detailed models are original procedural 2D perspective drawings and cached directional sprites, not imported 3D meshes. Materials are generated once and retained; soldier cache is bounded. Graphics setting selects internal rendering resolution and floor sampling; portrait internal height is capped at 1280. Aim changes accuracy/FOV and aligns the illustrated sight. This remains a retro FPS: no vertical aim hit simulation, stacked floors or 3D physics. Evaluate a proper WebGL engine for that future scope. Cached BFS navigation invalidates only when cover changes. Controller settings are optional local storage with malformed-value recovery.
+Retains dependency-free Canvas raycasting. Detailed models are original procedural 2D perspective drawings and cached directional sprites, not imported 3D meshes. Materials are generated once and retained; soldier cache is bounded. Graphics setting selects internal rendering resolution and floor sampling; portrait internal height is capped at 1280. Aim changes accuracy/FOV and aligns the illustrated sight. This remains a retro FPS: no stacked floors or 3D physics; the 0.4.0 pass below adds vertical aim hit alignment. Evaluate a proper WebGL engine for that future scope. Cached BFS navigation invalidates only when cover changes. Controller settings are optional local storage with malformed-value recovery.
 
 ## 0.3.0 polish and recovery
 
@@ -62,3 +62,13 @@ Held automatic fire retains fractional cooldown for stable cadence; tapping the 
 Input mode follows the active pointer, preserving mouse use on touchscreen laptops. Each touch action has independent ownership and lost-capture recovery. Pause makes the background inert, contains keyboard focus, clears inputs and supports Escape to resume; Tab during play opens pause. Reduced motion suppresses optional flashing/moving effects but retains HP, static kill text and directional threat information. Full-forward touch movement requests sprint.
 
 PNG installation icons are rasterizations of the original project WD SVG, padded for maskable launchers. The worker precaches them with the complete v8 bundle. Build/CI browser tools are isolated from the application artifact. No server, telemetry, remote assets or account surface was introduced.
+
+## 0.4.0 combat feel
+
+Mouse button state is tracked with mousedown/up as well as pointer capture: Pointer Events do not emit a fresh pointerdown for the second button of a mouse chord. Aim and primary fire therefore remain independent in both press/release orders. Touch-generated compatibility mouse events are ignored. Aim input updates immediately; the controller converts look deltas to angular player.pitch and yaw with current optical magnification sensitivity scaling.
+
+The renderer uses cameraView focal magnification (4x marksman, 1.45x carbine, 1.2x SMG), a genuine circular sniper optic/reticle and dedicated open/reflex ADS sights. Foreground receivers do not cover the aiming point. The horizon is centred from tan(player.pitch)*projection; direct shots must intersect the soldier's vertical body interval, and impact projection retains the shot pitch. This is still a 2.5D map with horizontal collision, not a full 3D terrain/physics engine.
+
+ADS retains 80% of ordinary movement speed and a small moving accuracy penalty. Optional view bob/sway is suppressed in ADS. The controller interpolates display positions and bot headings between fixed simulation steps, keeping authoritative collision/hits separate and player look immediate. Teleports/death/respawn do not interpolate across the map. Stable display-object identity avoids resetting weapon animation every frame.
+
+Bots retain targets until a materially closer threat arrives, commit navigation waypoints, steer velocity/heading continuously, and advance walking phase from distance travelled. A single procedural soldier silhouette articulates from continuous signed facing, with legs driven by travelled distance. It avoids overlapping directional sprites, extra offscreen canvases and sprite-cache growth. Static reduced-motion alternatives remain supported.

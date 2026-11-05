@@ -14,7 +14,7 @@ function harness({stored='{}',storageFails=false,touch=false,lockFails=false}={}
  const kits=['carbine','smg','marksman'].map(id=>{const el=element('kit-'+id);el.dataset.kit=id;return el;});
  element('difficulty').value='normal';element('difficulty').options=['easy','normal','hard'].map(value=>({value}));element('sensitivity').value='1';element('quality').value='auto';element('quality').options=['auto','low','high'].map(value=>({value}));element('world').requestPointerLock=()=>{if(lockFails)throw Error('unavailable');document.pointerLockElement=element('world');};
  let raf;let now=0;const localStorage={getItem(k){if(storageFails)throw Error('disabled');return data.get(k)||null;},setItem(k,v){if(storageFails)throw Error('disabled');data.set(k,v);}};
- class Renderer{constructor(){this.buffer={height:360};this.reduced=false;this.hurt=0;}resize(){}draw(){}minimap(){}}
+ class Renderer{constructor(){this.buffer={height:360};this.reduced=false;this.hurt=0;this.lookScale=1;}resize(){}draw(g){this.lastDraw=g;this.lastPose={...g.player};}minimap(){}}
  const context=vm.createContext({Game,KITS,safeProfile,clamp,TEAM_COLORS,angleDiff,Renderer,document,localStorage,navigator:{maxTouchPoints:touch?1:0},matchMedia:()=>({matches:touch}),performance:{now:()=>now},addEventListener:(type,fn)=>listeners.set(type,fn),requestAnimationFrame:fn=>raf=fn,setTimeout:()=>0,window:{}});
  const code=readFileSync(new URL('../app.js',import.meta.url),'utf8').replace(/^import .*;\r?\n/gm,'');
  vm.runInContext(code+'\nthis.inspect=()=>({game,state,firing,aimHeld,aimToggle,storageOK,renderer});',context);
@@ -59,7 +59,7 @@ test('a touch fire tap shoots immediately and a second finger cannot steal owner
 
 test('fallback drag supports vertical look and cancellation clears held mouse actions',()=>{
  const h=harness({lockFails:true});h.element('deploy').onclick();const world=h.element('world');
- world.emit('pointerdown',{button:0,pointerId:7,clientX:20,clientY:20});world.emit('pointermove',{pointerId:7,clientX:40,clientY:40});assert.ok(h.inspect().renderer.pitch<0);
+ world.emit('pointerdown',{button:0,pointerId:7,clientX:20,clientY:20});world.emit('pointermove',{pointerId:7,clientX:40,clientY:40});assert.ok(h.inspect().game.player.pitch<0);
  world.emit('pointerdown',{button:2,pointerId:8});h.emit('pointercancel',{type:'pointercancel',button:-1,pointerId:7});assert.equal(h.inspect().aimHeld,false);assert.equal(h.inspect().firing,false);
 });
 
@@ -88,4 +88,29 @@ test('Tab opens a safe pause instead of moving focus behind the playing field',(
 test('pushing touch stick fully forward sprints and releasing it clears sprint',()=>{
  const h=harness({touch:true});h.element('deploy').onclick();const stick=h.element('stick');stick.onpointerdown({pointerId:1,clientX:100,clientY:100,preventDefault(){}});stick.onpointermove({pointerId:1,clientX:100,clientY:60});h.step();assert.equal(h.inspect().game.sprinting,true);assert.ok(h.inspect().game.stamina<100);
  stick.onpointerup({pointerId:1});h.step();assert.equal(h.inspect().game.sprinting,false);
+});
+
+test('real mouse button chords support ADS, movement and fire in either press order',()=>{
+ for(const first of [2,0]){
+  const h=harness();h.element('deploy').onclick();const world=h.element('world'),down=(button,buttons)=>world.emit('mousedown',{button,buttons,preventDefault(){}});down(first,first===2?2:1);down(first===2?0:2,3);
+  h.emit('keydown',{code:'KeyW'});h.emit('keydown',{code:'KeyD'});const start={...h.inspect().game.player};h.step();assert.equal(h.inspect().game.aiming,true);assert.equal(h.inspect().firing,true);assert.ok(h.inspect().game.ammo<h.inspect().game.weapon.mag);assert.ok(Math.hypot(h.inspect().game.player.x-start.x,h.inspect().game.player.y-start.y)>0);
+  h.emit('mouseup',{button:0,buttons:2});assert.equal(h.inspect().firing,false);h.step();assert.equal(h.inspect().game.aiming,true);h.emit('mouseup',{button:2,buttons:0});h.step();assert.equal(h.inspect().game.aiming,false);
+ }
+});
+
+test('touch-generated compatibility mouse events do not create held mouse actions',()=>{
+ const h=harness({touch:true});h.element('deploy').onclick();h.element('world').emit('mousedown',{button:2,buttons:2,sourceCapabilities:{firesTouchEvents:true},preventDefault(){}});h.step();assert.equal(h.inspect().aimHeld,false);
+});
+
+test('angular look updates the player shot pitch and respects scoped sensitivity',()=>{
+ const h=harness();h.element('deploy').onclick();h.inspect().renderer.lookScale=.25;
+ const start=h.inspect().game.player.a;h.emit('mousemove',{movementX:100,movementY:-100});assert.ok(h.inspect().game.player.pitch>0);assert.ok(h.inspect().game.player.pitch<.3);assert.ok(h.inspect().game.player.a-start<.1);
+ h.emit('mousemove',{movementX:0,movementY:-100000});assert.ok(h.inspect().game.player.pitch<=.65);
+});
+
+test('display interpolation fills frames between simulation steps without delaying mouse look',()=>{
+ const h=harness();h.element('deploy').onclick();h.inspect().game.bots=[];h.emit('keydown',{code:'KeyW'});h.step(1000/120);
+ const {game,renderer}=h.inspect(),simY=game.player.y,firstDraw=renderer.lastPose.y,stableDisplay=renderer.lastDraw;assert.ok(firstDraw<simY);
+ h.emit('mousemove',{movementX:20,movementY:-10});h.step(1000/240);assert.equal(game.player.y,simY);assert.ok(renderer.lastPose.y>firstDraw&&renderer.lastPose.y<simY);assert.equal(renderer.lastPose.a,game.player.a);assert.equal(renderer.lastPose.pitch,game.player.pitch);assert.equal(renderer.lastDraw,stableDisplay);assert.notEqual(renderer.lastDraw,game);
+ h.emit('keyup',{code:'KeyW'});game.player.x+=5;h.step(1);assert.equal(renderer.lastPose.x,game.player.x,'teleports must snap instead of interpolating through intervening walls');
 });

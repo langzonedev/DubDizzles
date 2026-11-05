@@ -27,3 +27,12 @@ Initial audit: Windows controller tests failed because their import-stripper ass
 - G10–G11: release `646c400`, verify/deploy run `41997054280` succeeded; live asset hashes and Edge/offline smoke passed. See RELEASE_0.3.0.md.
 - G12: product lessons captured in HANDOFF/GAUNTLET_REVIEW/architecture; no change in repository identity, visibility, lifecycle or successor relationship required a portfolio edit. Existing Core modifications were preserved.
 - Next recipient: Greg, physical phone/desktop play-feel acceptance. This is a human handoff, not an invented physical-device or enjoyment result.
+
+
+## 0.4.0 gameplay-feel gauntlet
+
+Current operator requested another gauntlet, proper sniper optics and simultaneous walking/strafe ADS, with weapon/enemy improvements while preserving palette/menu. The same independently bounded role assignments resumed: root owns controller/input/render interpolation/integration/release; gameplay owns pure simulation and mechanics tests; presentation owns renderer and renderer geometry/state tests; qa_gauntlet owns independent controller/browser verification and FEEL_REVIEW.md. Publication authority and exclusions above persist.
+
+Acceptance: actual 4x scoped scene and reticle, distinct non-obstructing sights, both real mouse chord orders and independent release while moving, magnification-scaled look and angular hit alignment, bot movement/animation continuity, no regressions in touch/pause/offline/economy, passing combined checks and live publication verification. Human feel/physical-phone acceptance remains Greg's next handoff.
+
+Convergence found a genuine mouse-chord defect (Pointer Events omit the second button's pointerdown) beyond the initial speed/bob symptom. Architecture adopted angular pitch so an optic cannot remain cosmetic. Rework returned to input, renderer and simulation authors; QA will explicitly accept the integrated candidate in FEEL_REVIEW.md. Release evidence and closure are recorded in RELEASE_0.4.0.md.

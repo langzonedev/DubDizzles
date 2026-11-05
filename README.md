@@ -4,7 +4,7 @@
 
 ## Status
 
-v0.3.0 polish release: consistent weapon cadence, fixed-step simulation, sturdier bot navigation, shot impacts and incoming-fire bearings, a clearer capture zone and tactical HUD, responsive rendering budgets, hybrid mouse/touch recovery, accessible pause, round accuracy and install icons. The Lang Systems agent team and independent gauntlet evidence are recorded in [the handoff](docs/HANDOFF.md) and [QA review](docs/GAUNTLET_REVIEW.md). This remains an original compact solo retro FPS; physical-phone comfort and human game-feel acceptance are the next handoff.
+v0.4.0 combat-feel release: a real 4x sniper scope, distinct carbine/SMG sights, responsive ADS walking/strafing/firing, correct mouse-button chords, angular vertical hit alignment, interpolated movement and smoother enemy steering/animation. The colours and deployment screen are preserved. Independent findings and runtime evidence are in [the feel review](docs/FEEL_REVIEW.md); [the handoff](docs/HANDOFF.md) lists the remaining physical-device checks.
 
 Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately retain the original name).
 
@@ -12,7 +12,7 @@ Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately re
 
 Deploy with the Yard Dogs against Rent-a-Tank and HR Department bot crews. Hold the central zone with more presence than either rival; your operator counts as two. First crew to 60 points wins. Objective presence and eliminations pay local, fictional cash. Choose a free carbine, $250 SMG or $400 marksman rifle per life. Redeploys automatically fall back to the free carbine when needed.
 
-- WASD move, mouse look, click or Space fire, Shift sprint, right mouse hold or Q toggle aim.
+- WASD move, mouse look, click or Space fire (works while aiming and strafing), Shift sprint, right mouse hold or Q toggle aim; the sniper uses a 4x optic. Vertical look now directs shots.
 - Arrow keys move/turn; drag the battlefield to look if cursor capture is unavailable.
 - R reload, E resupply near a green crate, G grenade, B buy/place $100 cover, Esc or Tab pause.
 - Touch: independent move stick, right-side look area and action buttons including toggle aim. Push the stick fully forward to sprint. Landscape recommended; real device acceptance pending.

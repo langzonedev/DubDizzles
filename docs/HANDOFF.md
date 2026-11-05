@@ -1,42 +1,33 @@
-# War Dizzles 0.3.0 — human playtest handoff
+# War Dizzles 0.4.0 — combat-feel handoff
 
-Date: 5 November 2026 (Australia/Adelaide). Target: `langzonedev/DubDizzles`, `main`, public GitHub Pages. Greg authorised main commits and publication; the current request explicitly authorised the parallel agent gauntlet. Team ownership and Core references are in [AGENT_TEAM.md](AGENT_TEAM.md); independent results are in [GAUNTLET_REVIEW.md](GAUNTLET_REVIEW.md).
+Date: 5 November 2026 (Australia/Adelaide). The operator requested another agent gameplay gauntlet after observing absent sniper optics, sluggish walking ADS and janky guns/enemies. Main/Pages authority and public browser-only boundaries remain unchanged. The original palette and deployment menu are preserved.
 
 Play: https://langzonedev.github.io/DubDizzles/
 
-## Delivered
+## This pass
 
-- Fixed-step simulation and consistent automatic-fire cadence; a short trigger tap interrupts sprint immediately.
-- Collision-safe movement, softer squad separation and navigation that survives cover in the objective centre.
-- Original shot streaks/impacts and directional incoming-fire cues, capture-zone ground markings and a clearer tactical map.
-- Objective distance/bearing/presence, nearby supply/cooldown prompts, round clock, kill confirmation and accuracy in the result report.
-- Aspect-preserving rendering with bounded portrait/landscape pixel budgets, throttled HUD/map work and reusable audio samples.
-- Independent touch ownership/cancellation, hybrid touchscreen-laptop mouse support, touch sprint and vertical drag-look fallback.
-- Keyboard-contained, inert-background pause and reduced-motion feedback alternatives.
-- PNG install icons, refreshed offline cache v8 and a real-browser gate in the publishing workflow.
+- Genuine 4x sniper optic, circular peripheral mask and calibrated reticle; gun hidden once scoped.
+- Distinct carbine reflex and SMG open sights, steadier ADS and magnification-scaled look sensitivity.
+- Fixed actual mouse-button chord handling: aim then fire, or fire then aim; independent releases work while walking/strafing.
+- Angular vertical aiming now affects direct hits and shot effects; camera and reticle share the same projection.
+- Faster aimed walking/strafing with a smaller precision penalty; smooth display interpolation while player look remains immediate.
+- Smoother bot turning, acceleration, target selection, navigation and continuous distance-driven leg animation.
 
-Existing wallet/settings identities, per-life costs, free fallback and original public-only assets are preserved. The shipped game has no dependencies, accounts, telemetry, purchases, multiplayer or server.
+Independent findings, test totals and browser evidence: [FEEL_REVIEW.md](FEEL_REVIEW.md). Publication evidence: [RELEASE_0.4.0.md](RELEASE_0.4.0.md). Previous release records remain in RELEASE_0.3.0.md and GAUNTLET_REVIEW.md.
 
-## Verification and publication
+## Human acceptance route
 
-Run `npm run verify` for syntax and mechanics/controller/worker checks. Run `node tests/browser-smoke.cjs` using the isolated Playwright setup in README for desktop play, keyboard pause, touch viewports, screenshots and offline reload. Browser and CI evidence belongs to the release commit, not to this document's claims alone. See the independent review for exact results and limits.
+1. Pick Long Distance HR. Hold RMB or press Q: a real 4x optic replaces the foreground gun. Aim at enemies at different heights; check that the visible reticle predicts hits.
+2. Hold W/D while aiming and firing. Try RMB then LMB, reverse the order, and release each independently. Reload while holding aim; scope should leave during reload and return afterward.
+3. Try the carbine and SMG sights, judge weapon visibility, turning sensitivity and strafing comfort. Watch nearby enemies turn and walk, then play a complete round and restart.
+4. On a physical phone, toggle AIM and move/look/fire with separate fingers. Try portrait/landscape, interruption/resume, reload and offline reopening. Human comfort, sustained heat and subjective enjoyment remain open; browser emulation cannot certify them.
 
-The Pages workflow must pass both automated and real-browser checks before packaging only application assets. Its browser screenshots are retained as the `browser-evidence` artifact. Application commit `646c400`, Actions run `41997054280` and post-deployment asset/browser/offline checks all passed. Full publication evidence is recorded in [RELEASE_0.3.0.md](RELEASE_0.3.0.md).
+## Operations and recovery
 
-## Next human session — Greg
+Run npm run verify; CI also runs tests/browser-smoke.cjs with isolated Playwright tools before Pages publication. Only the static application assets ship; no accounts, telemetry, purchases, third-party game assets or server were introduced. Local wallet/settings and per-life costs are unchanged.
 
-1. On Windows Chrome/Edge, play two rounds. Check mouse capture, movement, aim, sprint-to-fire, reload, cover/grenades, supplies, threat cues, objective clarity, death/redeploy and result/restart. Try Escape/Tab pause and keyboard resume.
-2. On a physical phone, try portrait and landscape. Move/look/fire together, push fully forward to sprint, release fingers independently and test all actions. Interrupt the browser, resume and judge readable HUD, comfort and sustained heat/battery use.
-3. After an online visit completes caching, disable connectivity and reload the same Pages URL. Complete a round. Reconnect, refresh when an update is available, and try installation if offered.
+Cache generation is dub-dizzles-v9. The complete bundle installs before activation, preserves other apps' caches, and never forces an active match reload. Refresh to load the new version. Existing loaded pages may keep their prior version until refreshed. To roll back, revert the application commit, increment the worker cache again, let verify/browser/deploy complete, and inspect the live game plus offline reload. Local wallet is client-owned and not real money or an authoritative competitive record.
 
-Physical touch comfort, thermal behaviour and enjoyment require this human session. Browser emulation and deterministic rounds establish specific technical behaviour, not those subjective/device outcomes. No claim of universal-browser or AAA feature parity is made.
+## Learning
 
-## Recovery and operations
-
-The game is a static solo arena. Local cash/best use `dub-dizzles-profile`; preferences use `war-dizzles-settings`. Denied storage falls back to the session. Clearing site data resets those values and offline availability; concurrent game tabs do not coordinate the wallet. No local value is real money or a trusted competitive score.
-
-Updates cache the whole bundle before activating and never force an active page reload. Refresh loads the latest code; existing pages may keep running their loaded version. Cache cleanup targets only `dub-dizzles-` caches and preserves other apps on the shared origin. Roll back with a normal revert, increment the worker cache generation again and let the same verify/browser/deploy gates run. Validate the reverted live page and offline reload.
-
-## Learning captured
-
-Cross-platform test harnesses must tolerate CRLF as well as LF. Capability detection must not equate touch hardware with exclusively touch input. Fire cadence must preserve fractional timing instead of quantising to render frames. Renderer quality must bound both aspect and total pixels. Offline/update claims need real worker execution as well as lifecycle unit tests. These product lessons are retained in the QA review; the pre-existing modified Core working tree was preserved without importing private source or changing other repositories.
+Test actual mouse-button chords, not just synthetic pointerdown events. Verify the visible optic, target magnification and reticle alignment, not just an aiming boolean. Separate simulation timing from display interpolation. Use explicit UTF-8 when authoring cross-platform source files. These lessons are recorded with the concrete defects and checks in the independent feel review.

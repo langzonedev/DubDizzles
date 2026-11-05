@@ -200,3 +200,52 @@ test('round accuracy counts fired bullets and direct hits, excluding rejected sh
  g.player.dead=.01;g.player.hp=0;g.update(.05);assert.equal(g.shots,2);assert.equal(g.hits,1);
  const fresh=game();assert.equal(fresh.shots,0);assert.equal(fresh.hits,0);assert.equal(fresh.accuracy,0);
 });
+
+test('aim, diagonal movement, turning and held fire remain simultaneous at every simulation step',()=>{
+ const g=game();g.bots=[];g.player.x=14;g.player.y=14;g.player.a=0;
+ for(let i=0;i<120;i++){const before={x:g.player.x,y:g.player.y,a:g.player.a};g.update(1/120,{aim:true,forward:1,strafe:1,turn:.1,fire:true,sprint:true});assert.equal(g.aiming,true);assert.equal(g.sprinting,false);assert.ok(Math.hypot(g.player.x-before.x,g.player.y-before.y)>0);assert.ok(g.player.a>before.a);}
+ assert.ok(g.shots>=6);assert.ok(Math.hypot(g.player.x-14,g.player.y-14)>2.1);
+});
+
+test('aimed strafing preserves precision rather than applying the hip-fire movement penalty',()=>{
+ const aimed=game({random:()=>1}),hip=game({random:()=>1});
+ for(const g of [aimed,hip]){g.bots=[];g.player.a=0;g.moving=1;}
+ aimed.aiming=true;aimed.fire();hip.fire();
+ assert.ok(Math.abs(aimed.lastShot.a)<Math.abs(hip.lastShot.a)*.3);
+ assert.ok(Math.abs(aimed.lastShot.a)<=KITS.carbine.spread*.4*1.15*.5+.000001);
+});
+
+test('bot heading and velocity steer continuously while locomotion phase follows travelled distance',()=>{
+ const g=game();g.map=emptyMap();g.player.inv=100;
+ const b={team:0,x:2.5,y:3.5,a:Math.PI,hp:100,dead:0,cooldown:100};
+ const enemy={team:1,x:5.5,y:3.5,a:0,hp:100,dead:0,cooldown:100};g.bots=[b,enemy];
+ const x=b.x,y=b.y;g.update(.05);
+ assert.ok(Math.abs(Math.atan2(Math.sin(b.a-Math.PI),Math.cos(b.a-Math.PI)))<=.05*5.5+.000001);
+ assert.ok(Math.hypot(b.vx,b.vy)<.7,'a stationary soldier accelerates into his strafe');
+ assert.ok(Math.abs(b.walkPhase-Math.hypot(b.x-x,b.y-y)*7)<.000001);
+ assert.ok(b.moving>0);
+});
+
+test('bot target hysteresis keeps crossing opponents stable and switches for a substantially nearer threat',()=>{
+ const g=game();g.map=emptyMap();g.player.inv=100;
+ const b={team:0,x:2.5,y:3.5,a:0,hp:100,dead:0,cooldown:100};
+ const first={team:1,x:5.5,y:3.5,a:0,hp:100,dead:0,cooldown:100};
+ const second={team:2,x:5.7,y:3.6,a:0,hp:100,dead:0,cooldown:100};g.bots=[b,first,second];
+ g.update(.01);assert.equal(b.targetIndex,1);
+ second.x=5.4;g.update(.01);assert.equal(b.targetIndex,1);
+ second.x=3.7;g.update(.01);assert.equal(b.targetIndex,2);
+});
+
+test('angular vertical aim must intersect the visible soldier body to register a shot',()=>{
+ const g=game();g.map=emptyMap();g.player={x:2.5,y:3.5,a:0,pitch:.5,hp:100,dead:0,inv:0};
+ const enemy={team:1,x:5.5,y:3.5,a:0,hp:100,dead:0,cooldown:100};g.bots=[enemy];
+ g.fire();assert.equal(enemy.hp,100);assert.equal(g.hits,0);
+ g.player.pitch=-.5;g.cooldown=0;g.fire();assert.equal(enemy.hp,100);assert.equal(g.hits,0);
+ g.player.pitch=Math.atan((.7-.46)/3);g.cooldown=0;g.fire();assert.ok(enemy.hp<100);assert.equal(g.hits,1);
+ g.player.pitch=0;g.cooldown=0;g.fire();assert.equal(g.hits,2);
+});
+
+test('respawning resets vertical aim without resetting round accuracy',()=>{
+ const g=game();g.bots=[];g.player.pitch=.6;g.shots=5;g.hits=2;g.player.dead=.01;g.player.hp=0;g.update(.05);
+ assert.equal(g.player.pitch,0);assert.equal(g.shots,5);assert.equal(g.hits,2);
+});
