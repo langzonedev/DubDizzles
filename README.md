@@ -4,7 +4,7 @@
 
 ## Status
 
-v0.1.1 playable alpha. Public GitHub Pages deployment verified, with a remote Chrome deployment/pause/resume smoke test; physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
+v0.1.2 playable alpha. Public GitHub Pages deployment verified, with a remote Chrome deployment/pause/resume smoke test; physical-device and offline-reload acceptance remain tracked in [the handoff](docs/HANDOFF.md). This is a compact retro FPS interpretation, not a feature-equivalent replacement for a AAA game.
 
 Play: https://langzonedev.github.io/DubDizzles/ (repository/path deliberately retain the original name).
 

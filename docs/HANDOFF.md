@@ -1,4 +1,4 @@
-# Human handoff — War Dizzles v0.1.1
+# Human handoff — War Dizzles v0.1.2
 
 ## What is ready
 
@@ -49,7 +49,7 @@ Core portfolio registration: `bbe7718ae096d2d31d9cee2a88c4b0973ce101dd`. The reg
 
 ## War Dizzles rename and live publication
 
-The operator enabled GitHub Actions for Pages and renamed the app to **War Dizzles**. Repository and Pages path remain `DubDizzles`. Display title, wordmark, WD icon, manifest name and weapon marking updated; installed-app identity and existing save/cache namespace preserved. Cache generation is now v4.
+The operator enabled GitHub Actions for Pages and renamed the app to **War Dizzles**. Repository and Pages path remain `DubDizzles`. Display title, wordmark, WD icon, manifest name and weapon marking updated; installed-app identity and existing save/cache namespace preserved. Cache generation is now v5.
 
 Rename commit `6f4b1b29c6bf8390dbd5e63e59550f9119d9aaf7` passed verify and deploy in Actions run `41972355799`. Observed live URL: https://langzonedev.github.io/DubDizzles/ . This supersedes the earlier first-publication blocker.
 
