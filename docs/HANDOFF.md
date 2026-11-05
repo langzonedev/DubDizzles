@@ -49,10 +49,12 @@ Core portfolio registration: `bbe7718ae096d2d31d9cee2a88c4b0973ce101dd`. The reg
 
 ## War Dizzles rename and live publication
 
-The operator enabled GitHub Actions for Pages and renamed the app to **War Dizzles**. Repository and Pages path remain `DubDizzles`. Display title, wordmark, WD icon, manifest name and weapon marking updated; installed-app identity and existing save/cache namespace preserved. Cache generation is now v3.
+The operator enabled GitHub Actions for Pages and renamed the app to **War Dizzles**. Repository and Pages path remain `DubDizzles`. Display title, wordmark, WD icon, manifest name and weapon marking updated; installed-app identity and existing save/cache namespace preserved. Cache generation is now v4.
 
 Rename commit `6f4b1b29c6bf8390dbd5e63e59550f9119d9aaf7` passed verify and deploy in Actions run `41972355799`. Observed live URL: https://langzonedev.github.io/DubDizzles/ . This supersedes the earlier first-publication blocker.
 
 Remote cloud Chrome evidence: renamed landing page and icon/WD wordmark rendered; cache-ready status displayed; Deploy entered a rendered first-person scene with HUD/minimap; pointer lock was unavailable and its explicit keyboard/drag fallback appeared; Escape paused and Space activated focused Resume. No game-origin errors appeared in captured browser logs (browser-extension metadata errors were unrelated). This is a remote-browser smoke test, not a Windows or physical-phone test. Full offline reload/update, sustained mouse capture, real touch comfort and performance remain pending.
 
 The browser walkthrough exposed allies overlapping the operator at initial spawn, causing oversized close-up sprites. Allies now spawn at least two metres away and very close bot billboards are culled; the spawn clearance is covered by the existing mechanics suite. Space now fires on the initial keydown as well as held input, so short taps register on slow rendering frames. The 17 mechanics tests and syntax checks pass after these corrections.
+
+The live update walkthrough found a browser HTTP cache retaining old application assets during worker replacement. The install now constructs precache requests with `cache: reload` so a new worker refreshes the full application bundle instead of reusing stale browser HTTP cache entries. Final remote verification remains limited to the flows actually observed; normal close/reopen update handling is retained.
