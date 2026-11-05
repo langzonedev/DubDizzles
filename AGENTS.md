@@ -1,4 +1,4 @@
-# Dub Dizzles delivery contract
+# War Dizzles delivery contract
 
 Use the Lang Systems Core baseline in docs/CORE_BASELINE.md. Explicit user authority on 5 November 2026 permits pushing main and public GitHub Pages operation for this game.
 

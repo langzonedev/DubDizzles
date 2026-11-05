@@ -1,4 +1,4 @@
-# Human handoff — Dub Dizzles v0.1.0
+# Human handoff — War Dizzles v0.1.0
 
 ## What is ready
 

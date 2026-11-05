@@ -1,4 +1,4 @@
-# Dub Dizzles
+# War Dizzles
 
 **Budget warfare. Premium nonsense.** An original solo browser FPS by Lang Systems.
 

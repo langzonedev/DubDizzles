@@ -1,6 +1,6 @@
 // Pure simulation: rendering, device input and storage live outside this module.
 export const SIZE=28;
-export const KITS={carbine:{name:'DUB CARBINE',cost:0,mag:24,damage:36,rate:.16,spread:.045,reload:1.7},smg:{name:'OFFICE SHREDDER',cost:250,mag:36,damage:22,rate:.085,spread:.075,reload:1.4},marksman:{name:'LONG DISTANCE HR',cost:400,mag:10,damage:78,rate:.55,spread:.025,reload:2.1}};
+export const KITS={carbine:{name:'YARD CARBINE',cost:0,mag:24,damage:36,rate:.16,spread:.045,reload:1.7},smg:{name:'OFFICE SHREDDER',cost:250,mag:36,damage:22,rate:.085,spread:.075,reload:1.4},marksman:{name:'LONG DISTANCE HR',cost:400,mag:10,damage:78,rate:.55,spread:.025,reload:2.1}};
 export const TEAM_COLORS=['#9fe4cf','#f3a16d','#c0a7ed'];
 export const SPAWNS=[[3.5,3.5],[24.5,4.5],[24.5,24.5]];
 export const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));

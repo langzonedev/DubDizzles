@@ -1,4 +1,4 @@
-# Dub Dizzles product brief
+# War Dizzles product brief
 
 ## Authority and evidence
 
@@ -8,11 +8,11 @@ The source facts take precedence over its generic generated summary: Windows and
 
 ## Product outcome
 
-Open a link and play a stylised, intentionally scrappy first-person combat game with a complete, repeatable solo match loop and clear controls. Original humour and assets give Dub Dizzles its own identity.
+Open a link and play a stylised, intentionally scrappy first-person combat game with a complete, repeatable solo match loop and clear controls. Original humour and assets give War Dizzles its own identity.
 
 | Requirement | Evidence status | Source / interpretation |
 | --- | --- | --- |
-| Browser FPS named Dub Dizzles | Confirmed | `desiredOutcome.problemStatement`, `scope.completionCriteria` |
+| Browser FPS named War Dizzles | Confirmed | `desiredOutcome.problemStatement`, `scope.completionCriteria` |
 | Play by clicking a public GitHub Pages link | Confirmed | `existingSystemConnections`; current operator instruction |
 | Primarily desktop; mobile also usable | Confirmed | `deviceRequirements`, `locationRequirements` |
 | Some offline use | Confirmed | `offlineRequirements` |
@@ -38,3 +38,7 @@ This release is an original browser interpretation, not a recreation of another 
 Online multiplayer, shared accounts, authoritative scores, monetisation and large-scale hosting are later design tasks. Local scores can be altered and are not competitive records. No analytics, social outreach, spending or customer communication is required.
 
 Unknowns retained for operator feedback: preferred match length, desired depth of weapon/economy systems, bot difficulty, physical-phone comfort/performance, and whether the first loop is sufficiently fun. These do not block a reversible first browser implementation. They do block claims of universal compatibility, final game balance, or a multiplayer architecture commitment.
+
+## Approved naming clarification
+
+Operator renamed the public app to **War Dizzles** after the initial source handoff. Repository `langzonedev/DubDizzles` and its Pages path stay unchanged. Manifest identity and local-storage/cache namespace remain stable to preserve existing installations and progress.
