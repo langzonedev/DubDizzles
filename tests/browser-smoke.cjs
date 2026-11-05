@@ -23,7 +23,11 @@ async function throttlePage(page){
 // debug API. Offline/update checks above use a separate unmodified browser context.
 async function instrumentController(page){
  await throttlePage(page);
- await page.route('**/app.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+`\nimport {cameraView as qaCameraView} from './renderer.js';globalThis.__feelInspect=()=>({x:game.player.x,y:game.player.y,a:game.player.a,pitch:game.player.pitch||0,aiming:game.aiming,firing,ammo:game.ammo,reloading:game.reloading,time:game.time,shotInterval:game.weapon.rate,state,renderAim:renderer.aim,view:qaCameraView(game.kit,renderer.aim),lock:document.pointerLockElement?.id});`});});
+ await page.route('**/app.js',async route=>{const response=await route.fetch();await route.fulfill({response,body:(await response.text())+`\nimport {cameraView as qaCameraView} from './renderer.js';
+ globalThis.__feelTrace=[];globalThis.__feelMouse={x:0,y:0,count:0};
+ addEventListener('mousemove',e=>{__feelMouse.x+=e.movementX;__feelMouse.y+=e.movementY;__feelMouse.count++;},true);
+ for(const type of ['mousemove','mousedown','mouseup','pointerdown','pointerup','pointerlockchange'])for(const phase of ['before','after'])addEventListener(type,e=>{__feelTrace.push({type,phase,time:e.timeStamp,movementX:e.movementX,movementY:e.movementY,clientX:e.clientX,clientY:e.clientY,screenX:e.screenX,screenY:e.screenY,button:e.button,buttons:e.buttons,trusted:e.isTrusted,touch:e.sourceCapabilities?.firesTouchEvents,pitch:game.player.pitch||0,a:game.player.a,state,lock:document.pointerLockElement?.id});if(__feelTrace.length>300)__feelTrace.shift();},phase==='before');
+ globalThis.__feelInspect=()=>({x:game.player.x,y:game.player.y,a:game.player.a,pitch:game.player.pitch||0,aiming:game.aiming,firing,ammo:game.ammo,reloading:game.reloading,time:game.time,shotInterval:game.weapon.rate,state,renderAim:renderer.aim,view:qaCameraView(game.kit,renderer.aim),lock:document.pointerLockElement?.id,mouse:{...__feelMouse}});`});});
 }
 // Slow software-rendered browsers can advance less simulation than wall time.
 // Observe actual simulation progress, retaining a strict ten-second response bound.
@@ -34,6 +38,17 @@ async function observeSimulation(page,duration){
  }),duration);
 }
 async function waitForADS(page){await page.waitForFunction(()=>{const s=__feelInspect();return s.aiming&&s.renderAim>.98;},null,{timeout:10000});}
+async function probeCapturedPitch(page,output){
+ // Prime known Playwright coordinates, then use actual input to reach each clamp.
+ // Small probes always move away from that clamp; no simulation state is reset.
+ const point={x:720,y:450},results=[];await page.mouse.move(point.x,point.y);
+ try{for(const bound of [.65,-.65]){
+  point.y+=bound>0?-4096:4096;await page.mouse.move(point.x,point.y);await page.waitForFunction(bound=>Math.abs(__feelInspect().pitch-bound)<1e-9,bound,{timeout:10000});
+  const before=await page.evaluate(()=>__feelInspect());point.x+=24;point.y+=bound>0?24:-24;await page.mouse.move(point.x,point.y);await page.waitForFunction(count=>__feelInspect().mouse.count>count,before.mouse.count,{timeout:10000});const after=await page.evaluate(()=>__feelInspect());
+  const pitchDelta=after.pitch-before.pitch,yawDelta=after.a-before.a;results.push({bound,before,after,pitchDelta,yawDelta});
+  assert.ok(Math.abs(after.pitch)<=.65&&Math.abs(pitchDelta)>.0001&&Math.abs(pitchDelta)<.2,'small captured input changes bounded pitch away from either clamp');assert.ok(pitchDelta*bound<0,'pitch moves away from the starting limit');assert.ok(Math.abs(yawDelta)>.0001&&Math.abs(yawDelta)<.2,'small captured input changes yaw without an uncontrolled jump');
+ }}finally{await fs.writeFile(path.join(output,'marksman-pitch-probes.json'),JSON.stringify({results,trace:await page.evaluate(()=>__feelTrace)},null,2));}
+}
 async function feelGauntlet(browser,url,output,errors){
  const context=await browser.newContext({viewport:{width:1440,height:900},serviceWorkers:'block'}),page=await context.newPage();
  page.on('pageerror',e=>errors.push(String(e)));await instrumentController(page);
@@ -41,7 +56,8 @@ async function feelGauntlet(browser,url,output,errors){
  for(const kit of ['carbine','smg','marksman']){
   await page.locator(`[data-kit="${kit}"]`).click();await page.locator('#deploy').click();await page.waitForFunction(()=>__feelInspect().lock==='world',null,{timeout:10000});
   assert.equal(await page.evaluate(()=>__feelInspect().lock),'world','actual mouse capture is required for this scenario');
-  await page.screenshot({path:path.join(output,kit+'-hip.png')});await page.mouse.down({button:'right'});await waitForADS(page);
+  await page.screenshot({path:path.join(output,kit+'-hip.png')});const beforeRMB=await page.evaluate(()=>__feelInspect());await page.mouse.down({button:'right'});await waitForADS(page);const afterRMB=await page.evaluate(()=>__feelInspect());const inputTrace={kit,beforeRMB,afterRMB,trace:await page.evaluate(()=>__feelTrace)};await fs.writeFile(path.join(output,kit+'-mouse-trace.json'),JSON.stringify(inputTrace,null,2));console.log('Captured ADS input',JSON.stringify({kit,beforeRMB,afterRMB,events:inputTrace.trace.slice(-12)}));
+  assert.ok(Math.abs(afterRMB.pitch-beforeRMB.pitch)<1e-6&&Math.abs(afterRMB.a-beforeRMB.a)<1e-6,'pressing RMB without commanded movement must not warp the camera; inspect saved mouse trace');
   const ads=await page.evaluate(()=>__feelInspect());assert.equal(ads.aiming,true);assert.ok(ads.renderAim>.92);assert.ok(ads.view.magnification>(kit==='marksman'?3.8:kit==='carbine'?1.4:1.17));
   await page.screenshot({path:path.join(output,kit+'-ads.png')});
   if(kit==='marksman'){
@@ -54,7 +70,7 @@ async function feelGauntlet(browser,url,output,errors){
   await page.keyboard.up('w');await page.keyboard.up('d');await page.mouse.up({button:'left'});const released=await page.evaluate(()=>__feelInspect());assert.equal(released.firing,false);assert.equal(released.aiming,true);const releaseSamples=await observeSimulation(page,released.shotInterval+.05);assert.ok(releaseSamples.every(s=>s.ammo===released.ammo&&!s.firing&&s.aiming),'primary release stops shots for a full firing interval while RMB stays down');
   await page.mouse.up({button:'right'});await page.mouse.down({button:'left'});await page.mouse.down({button:'right'});await waitForADS(page);assert.equal((await page.evaluate(()=>__feelInspect())).aiming,true,'LMB then RMB chord also enters ADS');await page.mouse.up({button:'right'});assert.equal((await page.evaluate(()=>__feelInspect())).firing,true,'aim release preserves held primary fire');await page.mouse.up({button:'left'});
   if(kit==='marksman'){
-   await page.mouse.down({button:'right'});await waitForADS(page);const pose=await page.evaluate(()=>__feelInspect());await page.mouse.move(760,430);const looked=await page.evaluate(()=>__feelInspect());assert.notEqual(looked.pitch,pose.pitch,'scoped mouse input changes actual shot pitch');assert.notEqual(looked.a,pose.a,'scoped mouse input still turns');await page.screenshot({path:path.join(output,'marksman-look.png')});
+   await page.mouse.down({button:'right'});await waitForADS(page);await probeCapturedPitch(page,output);await page.screenshot({path:path.join(output,'marksman-look.png')});
    await page.keyboard.press('r');await page.waitForFunction(()=>{const s=__feelInspect();return s.reloading>0&&!s.aiming&&!s.view.scoped;},null,{timeout:10000});assert.equal((await page.evaluate(()=>__feelInspect())).aiming,false,'reload leaves scoped aiming');await page.screenshot({path:path.join(output,'marksman-reload.png')});await page.waitForFunction(()=>{const s=__feelInspect();return s.reloading===0&&s.ammo===10&&s.aiming&&s.view.scoped;},null,{timeout:15000});const reloaded=await page.evaluate(()=>__feelInspect());assert.equal(reloaded.ammo,10);assert.equal(reloaded.aiming,true,'held RMB re-enters scope after reload');await page.mouse.up({button:'right'});
   }
   await page.keyboard.press('Escape');await page.locator('#backMenu').click();
