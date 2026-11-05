@@ -90,7 +90,10 @@ async function feelGauntlet(browser,url,output,errors){
  const output=process.env.BROWSER_EVIDENCE_DIR||await fs.mkdtemp(path.join(os.tmpdir(),'war-dizzles-browser-'));
  await fs.mkdir(output,{recursive:true});await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  const url=`http://127.0.0.1:${server.address().port}/DubDizzles/`;
- const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{})});
+ // Use the regular browser's new headless mode, matching installed Chrome/Edge;
+ // the separate Linux headless shell generated unsolicited pointer-lock warps.
+ const browser=await chromium.launch({headless:true,...(process.env.BROWSER_EXECUTABLE?{executablePath:process.env.BROWSER_EXECUTABLE}:{channel:'chromium'})});
+ console.log('Browser engine',JSON.stringify({version:browser.version(),channel:process.env.BROWSER_EXECUTABLE?'configured executable':'chromium',headless:true}));
  const errors=[];
  try{
   const context=await browser.newContext({viewport:{width:1440,height:900}}),page=await context.newPage();
