@@ -54,4 +54,3 @@ const deadline=setTimeout(()=>{console.error('Laptop smoke exceeded 60 seconds')
   assert.deepEqual(errors,[]);const result={result:'PASS',evidenceKind:'local automated browser; no physical touchpad or phone claim',browser:browser.version(),freeCheck,heldCheck,heldBefore,heldAfter,before,after,diagonal,stopped,still,fixture,rawBefore,rawAfter,errors,evidence:output};await fs.writeFile(path.join(output,'laptop-result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify(result,null,2));await context.close();
  }finally{await browser.close();server.close();}
 })().catch(error=>{console.error(error);server.close();process.exitCode=1;}).finally(()=>clearTimeout(deadline));
-
